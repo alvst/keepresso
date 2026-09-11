@@ -3,6 +3,23 @@
 All notable changes to Keepresso are documented here, grouped by release.
 Versions follow [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+Theme: second batch of macOS 27 updates, and a more compact menu.
+
+### Changed
+
+- **The menu ends with three rows instead of nine.** Preferences stays on
+  top, the four assistant windows (Headless Setup, Gaming & Streaming,
+  Keyboard Cleaner, Public Wi-Fi) fold into an expandable Tools section, and
+  Welcome, About, Check for Updates, and Support fold into Help. Quit stays
+  where it was. The right-click menu mirrors the same grouping with native
+  submenus.
+
+- **The See-through slider hides itself on macOS 27.** The system owns the
+  MenuBarExtra panel glass there, so the Appearance setting has no visible
+  effect. Below macOS 27 it works as before.
+
 ## [1.24.0] - 2026-09-11
 
 Theme: macOS 27, and a calmer administrator helper.
