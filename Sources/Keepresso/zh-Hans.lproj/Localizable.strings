@@ -754,3 +754,5 @@
 "Posts a 1-pixel mouse move every 60 s. For software that watches the pointer." = "每 60 秒发送一次 1 像素的鼠标移动。适用于监测指针的软件。";
 "Helper installed. Closed-display mode, Keyboard Cleaner, fan boost, AWDL pausing, and DNS flush work without password prompts." = "助理已安装。合盖模式、键盘清洁器、风扇加速、AWDL 暂停和 DNS 刷新都无需弹出密码请求即可使用。";
 "Install a small helper service so closed-display mode, Keyboard Cleaner, the thermal fan boost, AWDL pausing, and DNS flush work without password prompts. macOS will ask you to allow it in System Settings, once. Nothing else changes." = "安装一个小型助理服务，让合盖模式、键盘清洁器、散热风扇加速、AWDL 暂停和 DNS 刷新无需弹出密码请求即可使用。macOS 会要求你在系统设置中允许它一次。不会有其他变化。";
+"Tools" = "工具";
+"Help" = "帮助";

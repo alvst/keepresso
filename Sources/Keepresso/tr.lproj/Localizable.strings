@@ -754,3 +754,5 @@
 "Posts a 1-pixel mouse move every 60 s. For software that watches the pointer." = "Her 60 sn’de 1 piksellik fare hareketi gönderir. İşaretçiyi izleyen yazılımlar içindir.";
 "Helper installed. Closed-display mode, Keyboard Cleaner, fan boost, AWDL pausing, and DNS flush work without password prompts." = "Yardımcı yüklendi. Kapalı ekran modu, Klavye Temizleyici, fan hızlandırma, AWDL duraklatma ve DNS temizleme parola istemleri olmadan çalışır.";
 "Install a small helper service so closed-display mode, Keyboard Cleaner, the thermal fan boost, AWDL pausing, and DNS flush work without password prompts. macOS will ask you to allow it in System Settings, once. Nothing else changes." = "Kapalı ekran modunun, Klavye Temizleyici'nin, termal fan hızlandırmanın, AWDL duraklatmanın ve DNS temizlemenin parola istemleri olmadan çalışması için küçük bir yardımcı hizmet yükleyin. macOS, Sistem Ayarları'nda bunu bir kez onaylamanızı ister. Başka hiçbir şey değişmez.";
+"Tools" = "Araçlar";
+"Help" = "Yardım";

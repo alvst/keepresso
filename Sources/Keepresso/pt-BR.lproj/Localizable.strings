@@ -754,3 +754,5 @@
 "Posts a 1-pixel mouse move every 60 s. For software that watches the pointer." = "Envia um movimento de mouse de 1 pixel a cada 60 s. Para softwares que observam o ponteiro.";
 "Helper installed. Closed-display mode, Keyboard Cleaner, fan boost, AWDL pausing, and DNS flush work without password prompts." = "Assistente instalado. O modo com tela fechada, o Limpador de teclado, o reforço das ventoinhas, a pausa de AWDL e a limpeza de DNS funcionam sem solicitações de senha.";
 "Install a small helper service so closed-display mode, Keyboard Cleaner, the thermal fan boost, AWDL pausing, and DNS flush work without password prompts. macOS will ask you to allow it in System Settings, once. Nothing else changes." = "Instale um pequeno serviço auxiliar para que o modo com tela fechada, o Limpador de teclado, o reforço térmico das ventoinhas, a pausa de AWDL e a limpeza de DNS funcionem sem solicitações de senha. O macOS pedirá que você o autorize uma vez nos Ajustes do Sistema. Nada mais muda.";
+"Tools" = "Ferramentas";
+"Help" = "Ajuda";

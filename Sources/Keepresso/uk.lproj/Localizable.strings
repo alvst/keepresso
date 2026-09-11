@@ -754,3 +754,5 @@
 "Posts a 1-pixel mouse move every 60 s. For software that watches the pointer." = "Надсилає рух миші на 1 піксель кожні 60 с. Для програм, що стежать за вказівником.";
 "Helper installed. Closed-display mode, Keyboard Cleaner, fan boost, AWDL pausing, and DNS flush work without password prompts." = "Помічника встановлено. Режим закритої кришки, очищення клавіатури, прискорення вентиляторів, призупинення AWDL і очищення DNS працюють без запитів пароля.";
 "Install a small helper service so closed-display mode, Keyboard Cleaner, the thermal fan boost, AWDL pausing, and DNS flush work without password prompts. macOS will ask you to allow it in System Settings, once. Nothing else changes." = "Установіть невелику службу-помічник, щоб режим закритої кришки, очищення клавіатури, термічне прискорення вентиляторів, призупинення AWDL і очищення DNS працювали без запитів пароля. macOS один раз попросить дозволити її в Системних параметрах. Більше нічого не зміниться.";
+"Tools" = "Інструменти";
+"Help" = "Довідка";

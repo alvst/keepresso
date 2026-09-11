@@ -3,7 +3,7 @@
 All notable changes to Keepresso are documented here, grouped by release.
 Versions follow [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## [1.24.1] - 2026-09-11
 
 Theme: second batch of macOS 27 updates, and a more compact menu.
 
