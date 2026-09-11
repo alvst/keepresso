@@ -412,6 +412,9 @@ private struct GeneralTab: View {
             } footer: {
                 sectionFooter("Keepresso follows your system language by default.")
             }
+            // macOS 27+ owns the MenuBarExtra panel glass: the slider below
+            // has no visible effect there, so hide the whole section.
+            if !Self.systemManagesGlass {
             Section {
                 LabeledContent("See-through") {
                     HStack(spacing: 8) {
@@ -441,6 +444,7 @@ private struct GeneralTab: View {
                 sectionHeader("Appearance", info: L("How see-through the menu-bar dropdown is. Frosty (0%) backs its glass with blur and a wash of the window color, so text stays crisp on any wallpaper. Sliding toward 100% thins that backing away until the panel is the system's bare Liquid Glass, letting the desktop shine through, with some contrast cost on busy or very dark wallpapers. Changes apply instantly, only to the dropdown (windows like this one keep their standard look), and the system's Reduce Transparency accessibility setting always wins."))
             } footer: {
                 sectionFooter("The menu-bar dropdown's glass, from frosty to clear Liquid Glass.")
+            }
             }
             // High up on purpose: this is the one-time set-and-forget step that
             // makes every privileged switch below (and AWDL pausing) silent.
@@ -947,6 +951,13 @@ private struct GeneralTab: View {
 
     /// How long with no input before dim-don't-sleep dims the panel.
     private static let dimDefaultDelay: TimeInterval = 300
+
+    /// macOS 27+ manages MenuBarExtra panel translucency itself: the
+    /// See-through slider has no effect, so the Appearance section hides.
+    /// Runtime version check (not `#available`) so this compiles on older SDKs.
+    fileprivate static var systemManagesGlass: Bool {
+        ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27
+    }
 
     /// On/off binding for dim-don't-sleep. Turning it on picks a sensible delay
     /// and clears the (never-surfaced) screen-saver yield, since after idle you
