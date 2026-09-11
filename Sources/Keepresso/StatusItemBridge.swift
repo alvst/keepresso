@@ -118,16 +118,24 @@ final class StatusItemBridge: NSObject {
         let menu = NSMenu()
         menu.autoenablesItems = false
         menu.addItem(entry(L("Preferences…"), #selector(openPreferences), key: ","))
-        menu.addItem(entry(L("Headless Setup…"), #selector(openSetup)))
-        menu.addItem(entry(L("Gaming & Streaming…"), #selector(openStreaming)))
-        menu.addItem(entry(L("Keyboard Cleaner…"), #selector(openKeyboardCleaner)))
-        menu.addItem(entry(L("Public Wi-Fi…"), #selector(openWifiAssistant)))
-        menu.addItem(entry(L("Welcome to Keepresso…"), #selector(openWelcome)))
-        menu.addItem(entry(L("About Keepresso"), #selector(openAbout)))
+        let tools = NSMenuItem(title: L("Tools"), action: nil, keyEquivalent: "")
+        let toolsMenu = NSMenu()
+        toolsMenu.addItem(entry(L("Headless Setup…"), #selector(openSetup)))
+        toolsMenu.addItem(entry(L("Gaming & Streaming…"), #selector(openStreaming)))
+        toolsMenu.addItem(entry(L("Keyboard Cleaner…"), #selector(openKeyboardCleaner)))
+        toolsMenu.addItem(entry(L("Public Wi-Fi…"), #selector(openWifiAssistant)))
+        tools.submenu = toolsMenu
+        menu.addItem(tools)
+        let help = NSMenuItem(title: L("Help"), action: nil, keyEquivalent: "")
+        let helpMenu = NSMenu()
+        helpMenu.addItem(entry(L("Welcome to Keepresso…"), #selector(openWelcome)))
+        helpMenu.addItem(entry(L("About Keepresso"), #selector(openAbout)))
         let check = entry(L("Check for Updates…"), #selector(checkForUpdates))
         check.isEnabled = updater.canCheckForUpdates
-        menu.addItem(check)
-        menu.addItem(entry(L("Support Keepresso…"), #selector(openDonate)))
+        helpMenu.addItem(check)
+        helpMenu.addItem(entry(L("Support Keepresso…"), #selector(openDonate)))
+        help.submenu = helpMenu
+        menu.addItem(help)
         menu.addItem(.separator())
         menu.addItem(entry(L("Quit Keepresso"), #selector(quit), key: "q"))
         return menu

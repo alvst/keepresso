@@ -39,6 +39,8 @@ struct MenuBarContent: View {
     @State private var lidRowShakes = 0
     @State private var showCustomDuration = false
     @State private var showUntilTime = false
+    @State private var toolsExpanded = false
+    @State private var helpExpanded = false
 
     private static let durationOptions: [(label: String, mode: SessionMode)] = [
         ("Indefinitely", .indefinite),
@@ -349,22 +351,68 @@ struct MenuBarContent: View {
 
     /// The window-opening entries and Quit, hidden while the panel is
     /// collapsed (they stay reachable via the icon's right-click menu).
+    /// Three rows only: Preferences, a Tools submenu (the four assistant
+    /// windows), and a Help submenu (welcome/about/updates/support).
     @ViewBuilder
     private var appEntries: some View {
-        Group {
-            Button("Preferences…") { open(KeepressoApp.preferencesWindowID) }
-                .keyboardShortcut(",")
-            Button("Headless Setup…") { open(KeepressoApp.setupWindowID) }
-            Button("Gaming & Streaming…") { open(KeepressoApp.streamingWindowID) }
-            Button("Keyboard Cleaner…") { open(KeepressoApp.keyboardCleanerWindowID) }
-            Button("Public Wi-Fi…") { open(KeepressoApp.wifiAssistantWindowID) }
-            Button("Welcome to Keepresso…") { open(KeepressoApp.welcomeWindowID) }
-            Button("About Keepresso") { open(KeepressoApp.aboutWindowID) }
-            Button("Check for Updates…") { updater.checkForUpdates() }
-                .disabled(!updater.canCheckForUpdates)
-            Button("Support Keepresso…") { NSWorkspace.shared.open(AppInfo.donate) }
+        Button("Preferences…") { open(KeepressoApp.preferencesWindowID) }
+            .keyboardShortcut(",")
+            .buttonStyle(.menuRow)
+        Button {
+            withAnimation(.snappy(duration: 0.2)) { toolsExpanded.toggle() }
+        } label: {
+            HStack {
+                Text("Tools")
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(type.caption2)
+                    .foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(toolsExpanded ? 90 : 0))
+            }
         }
         .buttonStyle(.menuRow)
+        if toolsExpanded {
+            VStack(alignment: .leading, spacing: 0) {
+                Button("Headless Setup…") { open(KeepressoApp.setupWindowID) }
+                    .buttonStyle(.menuRow)
+                Button("Gaming & Streaming…") { open(KeepressoApp.streamingWindowID) }
+                    .buttonStyle(.menuRow)
+                Button("Keyboard Cleaner…") { open(KeepressoApp.keyboardCleanerWindowID) }
+                    .buttonStyle(.menuRow)
+                Button("Public Wi-Fi…") { open(KeepressoApp.wifiAssistantWindowID) }
+                    .buttonStyle(.menuRow)
+            }
+            .padding(.leading, 12)
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+        Button {
+            withAnimation(.snappy(duration: 0.2)) { helpExpanded.toggle() }
+        } label: {
+            HStack {
+                Text("Help")
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(type.caption2)
+                    .foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(helpExpanded ? 90 : 0))
+            }
+        }
+        .buttonStyle(.menuRow)
+        if helpExpanded {
+            VStack(alignment: .leading, spacing: 0) {
+                Button("Welcome to Keepresso…") { open(KeepressoApp.welcomeWindowID) }
+                    .buttonStyle(.menuRow)
+                Button("About Keepresso") { open(KeepressoApp.aboutWindowID) }
+                    .buttonStyle(.menuRow)
+                Button("Check for Updates…") { updater.checkForUpdates() }
+                    .disabled(!updater.canCheckForUpdates)
+                    .buttonStyle(.menuRow)
+                Button("Support Keepresso…") { NSWorkspace.shared.open(AppInfo.donate) }
+                    .buttonStyle(.menuRow)
+            }
+            .padding(.leading, 12)
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
 
         Divider()
 
