@@ -54,6 +54,10 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
     public var showManualSessionInMenu: Bool
     /// Whether trigger status and pause/resume controls appear in the panel.
     public var showTriggerControlsInMenu: Bool
+    /// Whether the lid-closed and low-battery controls appear in the panel.
+    public var showQuickSettingsInMenu: Bool
+    /// Whether the specialized assistant shortcuts appear in the panel.
+    public var showToolsInMenu: Bool
     /// How see-through the menu-bar dropdown is, 0 (fully frosty,
     /// strongest readability backing) to 100 (clearest Liquid Glass).
     /// Defaults to the halfway 50.
@@ -135,6 +139,8 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         menuPanelExpanded: Bool = true,
         showManualSessionInMenu: Bool = true,
         showTriggerControlsInMenu: Bool = true,
+        showQuickSettingsInMenu: Bool = true,
+        showToolsInMenu: Bool = true,
         glassClarity: Int = 50,
         awdlAutoWithGaming: Bool = false,
         awdlNotifications: Bool = false,
@@ -171,14 +177,19 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         self.pauseBelowBatteryPercent = pauseBelowBatteryPercent.map(Self.clampedBatteryPausePercent)
         self.showCountdownInMenuBar = showCountdownInMenuBar
         self.menuPanelExpanded = menuPanelExpanded
-        if showManualSessionInMenu || showTriggerControlsInMenu {
+        if showManualSessionInMenu || showTriggerControlsInMenu
+            || showQuickSettingsInMenu || showToolsInMenu {
             self.showManualSessionInMenu = showManualSessionInMenu
             self.showTriggerControlsInMenu = showTriggerControlsInMenu
+            self.showQuickSettingsInMenu = showQuickSettingsInMenu
+            self.showToolsInMenu = showToolsInMenu
         } else {
             // A settings import or hand-written initializer must not produce a
-            // panel with no primary controls at all.
+            // panel with no user-selected sections at all.
             self.showManualSessionInMenu = true
             self.showTriggerControlsInMenu = false
+            self.showQuickSettingsInMenu = false
+            self.showToolsInMenu = false
         }
         self.glassClarity = min(max(glassClarity, 0), 100)
         self.awdlAutoWithGaming = awdlAutoWithGaming
@@ -280,12 +291,18 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         menuPanelExpanded = try c.decodeIfPresent(Bool.self, forKey: .menuPanelExpanded) ?? true
         let decodedManualSection = try c.decodeIfPresent(Bool.self, forKey: .showManualSessionInMenu) ?? true
         let decodedTriggerSection = try c.decodeIfPresent(Bool.self, forKey: .showTriggerControlsInMenu) ?? true
-        if decodedManualSection || decodedTriggerSection {
+        let decodedQuickSettings = try c.decodeIfPresent(Bool.self, forKey: .showQuickSettingsInMenu) ?? true
+        let decodedTools = try c.decodeIfPresent(Bool.self, forKey: .showToolsInMenu) ?? true
+        if decodedManualSection || decodedTriggerSection || decodedQuickSettings || decodedTools {
             showManualSessionInMenu = decodedManualSection
             showTriggerControlsInMenu = decodedTriggerSection
+            showQuickSettingsInMenu = decodedQuickSettings
+            showToolsInMenu = decodedTools
         } else {
             showManualSessionInMenu = true
             showTriggerControlsInMenu = false
+            showQuickSettingsInMenu = false
+            showToolsInMenu = false
         }
         glassClarity = min(max(try c.decodeIfPresent(Int.self, forKey: .glassClarity) ?? 50, 0), 100)
         awdlAutoWithGaming = try c.decodeIfPresent(Bool.self, forKey: .awdlAutoWithGaming) ?? false

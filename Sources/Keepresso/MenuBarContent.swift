@@ -120,20 +120,19 @@ struct MenuBarContent: View {
 
             primaryControls
 
-            // The option toggles and app entries fold away behind the "Show
-            // less" row, leaving a status-and-controls-only panel; everything
-            // hidden stays reachable via right-click on the icon.
-            if model.menuPanelExpanded {
-                optionToggles
+            // Secondary sections still respect Show more/less, while their
+            // presence in the expanded panel is chosen independently in
+            // Preferences.
+            if model.menuPanelExpanded && model.showQuickSettingsInMenu {
+                if hasVisiblePrimaryControls { Divider() }
+                quickSettings
             }
 
             statusStack
 
-            if model.menuPanelExpanded {
-                Divider()
+            Divider()
 
-                appEntries
-            }
+            appEntries
 
             expandToggleRow
         }
@@ -153,6 +152,8 @@ struct MenuBarContent: View {
         .animation(.snappy(duration: 0.25), value: model.menuPanelExpanded)
         .animation(.snappy(duration: 0.25), value: model.showManualSessionInMenu)
         .animation(.snappy(duration: 0.25), value: model.showTriggerControlsInMenu)
+        .animation(.snappy(duration: 0.25), value: model.showQuickSettingsInMenu)
+        .animation(.snappy(duration: 0.25), value: model.showToolsInMenu)
         .glassPanelBackground()
         .tint(.keepressoBrew)
         // Cascades to every text that sets no font of its own (toggles,
@@ -170,6 +171,15 @@ struct MenuBarContent: View {
     /// The two main control areas are selected independently in Preferences.
     /// Keeping them as siblings instead of one trigger/manual branch lets a
     /// user keep both trigger status and a fixed-duration override in the panel.
+    private var hasVisiblePrimaryControls: Bool {
+        model.showTriggerControlsInMenu || model.showManualSessionInMenu
+    }
+
+    private var hasVisibleConfiguredControls: Bool {
+        hasVisiblePrimaryControls || (model.menuPanelExpanded && model.showQuickSettingsInMenu)
+    }
+
+>>>>>>> 8398764 (Add comprehensive menu section customization)
     @ViewBuilder
     private var primaryControls: some View {
         if model.showTriggerControlsInMenu {
@@ -299,14 +309,9 @@ struct MenuBarContent: View {
         }
     }
 
-    /// The middle option toggles (session-scoped closed-display and battery),
-    /// hidden while the panel is collapsed. The persistent sleep override is
-    /// intentionally kept in Preferences; the dropdown always offers a clear
-    /// way back when the global setting is live.
+    /// The user-selectable closed-display and battery controls.
     @ViewBuilder
-    private var optionToggles: some View {
-        Divider()
-
+    private var quickSettings: some View {
         // The same pmset switch wears two names: on a laptop it exists to
         // survive the lid closing, on a desktop (no lid, no battery) it
         // reads as a hard "never sleep" override.
@@ -405,69 +410,74 @@ struct MenuBarContent: View {
         }
     }
 
-    /// The window-opening entries and Quit, hidden while the panel is
-    /// collapsed (they stay reachable via the icon's right-click menu).
-    /// Three rows only: Preferences, a Tools submenu (the four assistant
-    /// windows), and a Help submenu (welcome/about/updates/support).
+    /// Preferences and Quit are permanent escape hatches. The specialized
+    /// assistants form the configurable Tools section; Help stays available
+    /// in the expanded panel without becoming another preference toggle.
     @ViewBuilder
     private var appEntries: some View {
         Button("Preferences…") { open(KeepressoApp.preferencesWindowID) }
             .keyboardShortcut(",")
             .buttonStyle(.menuRow)
-        Button {
-            withAnimation(.snappy(duration: 0.2)) { toolsExpanded.toggle() }
-        } label: {
-            HStack {
-                Text("Tools")
-                Spacer(minLength: 8)
-                Image(systemName: "chevron.right")
-                    .font(type.caption2)
-                    .foregroundStyle(.secondary)
-                    .rotationEffect(.degrees(toolsExpanded ? 90 : 0))
+
+        if model.menuPanelExpanded && model.showToolsInMenu {
+            Button {
+                withAnimation(.snappy(duration: 0.2)) { toolsExpanded.toggle() }
+            } label: {
+                HStack {
+                    Text("Tools")
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(type.caption2)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(toolsExpanded ? 90 : 0))
+                }
+            }
+            .buttonStyle(.menuRow)
+            if toolsExpanded {
+                VStack(alignment: .leading, spacing: 0) {
+                    Button("Headless Setup…") { open(KeepressoApp.setupWindowID) }
+                        .buttonStyle(.menuRow)
+                    Button("Gaming & Streaming…") { open(KeepressoApp.streamingWindowID) }
+                        .buttonStyle(.menuRow)
+                    Button("Keyboard Cleaner…") { open(KeepressoApp.keyboardCleanerWindowID) }
+                        .buttonStyle(.menuRow)
+                    Button("Public Wi-Fi…") { open(KeepressoApp.wifiAssistantWindowID) }
+                        .buttonStyle(.menuRow)
+                }
+                .padding(.leading, 12)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .buttonStyle(.menuRow)
-        if toolsExpanded {
-            VStack(alignment: .leading, spacing: 0) {
-                Button("Headless Setup…") { open(KeepressoApp.setupWindowID) }
-                    .buttonStyle(.menuRow)
-                Button("Gaming & Streaming…") { open(KeepressoApp.streamingWindowID) }
-                    .buttonStyle(.menuRow)
-                Button("Keyboard Cleaner…") { open(KeepressoApp.keyboardCleanerWindowID) }
-                    .buttonStyle(.menuRow)
-                Button("Public Wi-Fi…") { open(KeepressoApp.wifiAssistantWindowID) }
-                    .buttonStyle(.menuRow)
+
+        if model.menuPanelExpanded {
+            Button {
+                withAnimation(.snappy(duration: 0.2)) { helpExpanded.toggle() }
+            } label: {
+                HStack {
+                    Text("Help")
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(type.caption2)
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(helpExpanded ? 90 : 0))
+                }
             }
-            .padding(.leading, 12)
-            .transition(.opacity.combined(with: .move(edge: .top)))
-        }
-        Button {
-            withAnimation(.snappy(duration: 0.2)) { helpExpanded.toggle() }
-        } label: {
-            HStack {
-                Text("Help")
-                Spacer(minLength: 8)
-                Image(systemName: "chevron.right")
-                    .font(type.caption2)
-                    .foregroundStyle(.secondary)
-                    .rotationEffect(.degrees(helpExpanded ? 90 : 0))
+            .buttonStyle(.menuRow)
+            if helpExpanded {
+                VStack(alignment: .leading, spacing: 0) {
+                    Button("Welcome to Keepresso…") { open(KeepressoApp.welcomeWindowID) }
+                        .buttonStyle(.menuRow)
+                    Button("About Keepresso") { open(KeepressoApp.aboutWindowID) }
+                        .buttonStyle(.menuRow)
+                    Button("Check for Updates…") { updater.checkForUpdates() }
+                        .disabled(!updater.canCheckForUpdates)
+                        .buttonStyle(.menuRow)
+                    Button("Support Keepresso…") { NSWorkspace.shared.open(AppInfo.donate) }
+                        .buttonStyle(.menuRow)
+                }
+                .padding(.leading, 12)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
-        }
-        .buttonStyle(.menuRow)
-        if helpExpanded {
-            VStack(alignment: .leading, spacing: 0) {
-                Button("Welcome to Keepresso…") { open(KeepressoApp.welcomeWindowID) }
-                    .buttonStyle(.menuRow)
-                Button("About Keepresso") { open(KeepressoApp.aboutWindowID) }
-                    .buttonStyle(.menuRow)
-                Button("Check for Updates…") { updater.checkForUpdates() }
-                    .disabled(!updater.canCheckForUpdates)
-                    .buttonStyle(.menuRow)
-                Button("Support Keepresso…") { NSWorkspace.shared.open(AppInfo.donate) }
-                    .buttonStyle(.menuRow)
-            }
-            .padding(.leading, 12)
-            .transition(.opacity.combined(with: .move(edge: .top)))
         }
 
         Divider()
@@ -477,8 +487,8 @@ struct MenuBarContent: View {
             .buttonStyle(.menuRow)
     }
 
-    /// The slim "Show less" / "Show more" row that folds the option toggles
-    /// and app entries away, pinned to the panel's bottom in both states.
+    /// The slim "Show less" / "Show more" row that folds secondary settings,
+    /// tools, and help away, pinned to the panel's bottom in both states.
     private var expandToggleRow: some View {
         Button {
             model.menuPanelExpanded.toggle()
@@ -494,19 +504,6 @@ struct MenuBarContent: View {
             .foregroundStyle(.secondary)
         }
         .buttonStyle(.menuRow)
-        // Keep the panel's ⌘, and ⌘Q working while their visible carriers are
-        // folded away. As a background, the carriers take no layout slot in
-        // the panel's VStack (a zero-size child would still add its spacing).
-        .background {
-            if !model.menuPanelExpanded {
-                Button("") { open(KeepressoApp.preferencesWindowID) }
-                    .keyboardShortcut(",")
-                    .hidden()
-                Button("") { NSApplication.shared.terminate(nil) }
-                    .keyboardShortcut("q")
-                    .hidden()
-            }
-        }
     }
 
     /// The quick "Stop in" shortcut buttons for the running session.

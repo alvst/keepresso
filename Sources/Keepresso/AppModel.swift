@@ -1561,7 +1561,8 @@ final class AppModel {
     var showManualSessionInMenu: Bool {
         get { settings.showManualSessionInMenu }
         set {
-            guard newValue || settings.showTriggerControlsInMenu else { return }
+            guard newValue || settings.showTriggerControlsInMenu
+                || settings.showQuickSettingsInMenu || settings.showToolsInMenu else { return }
             settings.showManualSessionInMenu = newValue
             persist()
         }
@@ -1570,8 +1571,29 @@ final class AppModel {
     var showTriggerControlsInMenu: Bool {
         get { settings.showTriggerControlsInMenu }
         set {
-            guard newValue || settings.showManualSessionInMenu else { return }
+            guard newValue || settings.showManualSessionInMenu
+                || settings.showQuickSettingsInMenu || settings.showToolsInMenu else { return }
             settings.showTriggerControlsInMenu = newValue
+            persist()
+        }
+    }
+
+    var showQuickSettingsInMenu: Bool {
+        get { settings.showQuickSettingsInMenu }
+        set {
+            guard newValue || settings.showManualSessionInMenu
+                || settings.showTriggerControlsInMenu || settings.showToolsInMenu else { return }
+            settings.showQuickSettingsInMenu = newValue
+            persist()
+        }
+    }
+
+    var showToolsInMenu: Bool {
+        get { settings.showToolsInMenu }
+        set {
+            guard newValue || settings.showManualSessionInMenu
+                || settings.showTriggerControlsInMenu || settings.showQuickSettingsInMenu else { return }
+            settings.showToolsInMenu = newValue
             persist()
         }
     }

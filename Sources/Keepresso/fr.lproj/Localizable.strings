@@ -54,8 +54,10 @@
 "Resolution" = "Résolution";
 "Startup" = "Démarrage";
 "Manual session" = "Session manuelle";
+"Quick settings" = "Réglages rapides";
+"Tools & shortcuts" = "Outils et raccourcis";
 "A manual session keeps the Mac awake for the selected duration even when no trigger condition is met. Starting one pauses triggers until you resume them." = "Une session manuelle garde le Mac éveillé pendant la durée sélectionnée, même si aucune condition de déclenchement n’est remplie. La démarrer met les déclencheurs en pause jusqu’à ce que vous les repreniez.";
-"Choose which control sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Turn on either one or both." = "Choisissez les sections de contrôle qui apparaissent dans le menu déroulant de la barre des menus. Session manuelle affiche les minuteurs fixes et personnalisés. Déclencheurs affiche l’agent IA et les autres conditions automatiques. Activez l’une ou les deux.";
+"Choose which sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Quick settings contains lid and battery controls. Tools & shortcuts opens the specialized assistants. Turn on any combination." = "Choisissez les sections qui apparaissent dans le menu déroulant de la barre des menus. Session manuelle affiche les minuteurs fixes et personnalisés. Déclencheurs affiche l’agent IA et les autres conditions automatiques. Réglages rapides contient les commandes du capot et de la batterie. Outils et raccourcis ouvre les assistants spécialisés. Activez la combinaison de votre choix.";
 "At least one control section must stay visible." = "Au moins une section de contrôle doit rester visible.";
 "Gaming" = "Jeu";
 "None" = "Aucun";

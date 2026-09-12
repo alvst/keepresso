@@ -358,6 +358,21 @@ private struct GeneralTab: View {
         Self.quickStopOptions.first { !model.quickStopDurations.contains($0) }
     }
 
+    /// Menu-bar sections can be mixed freely, but the final visible section
+    /// stays enabled so the user's customized panel never becomes empty.
+    private var visibleMenuSectionCount: Int {
+        [
+            model.showManualSessionInMenu,
+            model.showTriggerControlsInMenu,
+            model.showQuickSettingsInMenu,
+            model.showToolsInMenu,
+        ].filter { $0 }.count
+    }
+
+    private func isLastVisibleMenuSection(_ isVisible: Bool) -> Bool {
+        isVisible && visibleMenuSectionCount == 1
+    }
+
     var body: some View {
         Form {
             Section {
@@ -544,18 +559,29 @@ private struct GeneralTab: View {
                     get: { model.showManualSessionInMenu },
                     set: { model.showManualSessionInMenu = $0 }
                 ))
-                .disabled(model.showManualSessionInMenu && !model.showTriggerControlsInMenu)
+                .disabled(isLastVisibleMenuSection(model.showManualSessionInMenu))
                 Toggle("Triggers", isOn: Binding(
                     get: { model.showTriggerControlsInMenu },
                     set: { model.showTriggerControlsInMenu = $0 }
                 ))
-                .disabled(model.showTriggerControlsInMenu && !model.showManualSessionInMenu)
+                .disabled(isLastVisibleMenuSection(model.showTriggerControlsInMenu))
+                Toggle("Quick settings", isOn: Binding(
+                    get: { model.showQuickSettingsInMenu },
+                    set: { model.showQuickSettingsInMenu = $0 }
+                ))
+                .disabled(isLastVisibleMenuSection(model.showQuickSettingsInMenu))
+                Toggle("Tools & shortcuts", isOn: Binding(
+                    get: { model.showToolsInMenu },
+                    set: { model.showToolsInMenu = $0 }
+                ))
+                .disabled(isLastVisibleMenuSection(model.showToolsInMenu))
+                Divider()
                 Toggle("Show countdown in menu bar", isOn: Binding(
                     get: { model.showCountdownInMenuBar },
                     set: { model.showCountdownInMenuBar = $0 }
                 ))
             } header: {
-                sectionHeader("Menu bar", info: L("Choose which control sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Turn on either one or both."))
+                sectionHeader("Menu bar", info: L("Choose which sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Quick settings contains lid and battery controls. Tools & shortcuts opens the specialized assistants. Turn on any combination."))
             } footer: {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("At least one control section must stay visible.")
