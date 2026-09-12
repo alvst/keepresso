@@ -54,6 +54,8 @@ APP = {
     'Startup': '啟動',
     'Manual session': '手動工作階段',
     'A manual session keeps the Mac awake for the selected duration even when no trigger condition is met. Starting one pauses triggers until you resume them.': '手動工作階段會在所選時長內讓 Mac 保持喚醒，即使沒有符合任何觸發條件。啟動後，觸發器會暫停，直到你恢復它們。',
+    'Choose which control sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Turn on either one or both.': '選擇要在選單列下拉面板中顯示的控制區段。手動工作階段顯示固定和自訂計時器。觸發條件顯示 AI 智慧代理和其他自動條件。可開啟其中一項或兩項。',
+    'At least one control section must stay visible.': '必須至少保留一個可見的控制區段。',
     'Gaming': '遊戲',
     'None': '無',
     'any': '任一',

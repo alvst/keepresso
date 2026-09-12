@@ -1556,6 +1556,26 @@ final class AppModel {
         }
     }
 
+    /// The primary menu sections are independently configurable, but the panel
+    /// must always retain at least one way to control keep-awake behavior.
+    var showManualSessionInMenu: Bool {
+        get { settings.showManualSessionInMenu }
+        set {
+            guard newValue || settings.showTriggerControlsInMenu else { return }
+            settings.showManualSessionInMenu = newValue
+            persist()
+        }
+    }
+
+    var showTriggerControlsInMenu: Bool {
+        get { settings.showTriggerControlsInMenu }
+        set {
+            guard newValue || settings.showManualSessionInMenu else { return }
+            settings.showTriggerControlsInMenu = newValue
+            persist()
+        }
+    }
+
     /// How see-through the panel and windows are, 0 (frosted default) to 100
     /// (clearest glass). Mirrored into ``GlassClarity`` so every glass
     /// surface updates live while the slider moves.

@@ -50,6 +50,10 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
     /// collapsed status-and-controls-only layout (the panel's "Show less" row).
     /// Expanded by default.
     public var menuPanelExpanded: Bool
+    /// Whether the manual start/timer controls appear in the menu-bar panel.
+    public var showManualSessionInMenu: Bool
+    /// Whether trigger status and pause/resume controls appear in the panel.
+    public var showTriggerControlsInMenu: Bool
     /// How see-through the menu-bar dropdown is, 0 (fully frosty,
     /// strongest readability backing) to 100 (clearest Liquid Glass).
     /// Defaults to the halfway 50.
@@ -129,6 +133,8 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         pauseBelowBatteryPercent: Int? = nil,
         showCountdownInMenuBar: Bool = false,
         menuPanelExpanded: Bool = true,
+        showManualSessionInMenu: Bool = true,
+        showTriggerControlsInMenu: Bool = true,
         glassClarity: Int = 50,
         awdlAutoWithGaming: Bool = false,
         awdlNotifications: Bool = false,
@@ -165,6 +171,15 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         self.pauseBelowBatteryPercent = pauseBelowBatteryPercent.map(Self.clampedBatteryPausePercent)
         self.showCountdownInMenuBar = showCountdownInMenuBar
         self.menuPanelExpanded = menuPanelExpanded
+        if showManualSessionInMenu || showTriggerControlsInMenu {
+            self.showManualSessionInMenu = showManualSessionInMenu
+            self.showTriggerControlsInMenu = showTriggerControlsInMenu
+        } else {
+            // A settings import or hand-written initializer must not produce a
+            // panel with no primary controls at all.
+            self.showManualSessionInMenu = true
+            self.showTriggerControlsInMenu = false
+        }
         self.glassClarity = min(max(glassClarity, 0), 100)
         self.awdlAutoWithGaming = awdlAutoWithGaming
         self.awdlNotifications = awdlNotifications
@@ -263,6 +278,15 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
             .map(Self.clampedBatteryPausePercent)
         showCountdownInMenuBar = try c.decodeIfPresent(Bool.self, forKey: .showCountdownInMenuBar) ?? false
         menuPanelExpanded = try c.decodeIfPresent(Bool.self, forKey: .menuPanelExpanded) ?? true
+        let decodedManualSection = try c.decodeIfPresent(Bool.self, forKey: .showManualSessionInMenu) ?? true
+        let decodedTriggerSection = try c.decodeIfPresent(Bool.self, forKey: .showTriggerControlsInMenu) ?? true
+        if decodedManualSection || decodedTriggerSection {
+            showManualSessionInMenu = decodedManualSection
+            showTriggerControlsInMenu = decodedTriggerSection
+        } else {
+            showManualSessionInMenu = true
+            showTriggerControlsInMenu = false
+        }
         glassClarity = min(max(try c.decodeIfPresent(Int.self, forKey: .glassClarity) ?? 50, 0), 100)
         awdlAutoWithGaming = try c.decodeIfPresent(Bool.self, forKey: .awdlAutoWithGaming) ?? false
         awdlNotifications = try c.decodeIfPresent(Bool.self, forKey: .awdlNotifications) ?? false

@@ -54,6 +54,8 @@ APP = {
     "Startup": "Запуск",
     "Manual session": "Ручной сеанс",
     "A manual session keeps the Mac awake for the selected duration even when no trigger condition is met. Starting one pauses triggers until you resume them.": "Ручной сеанс не дает Mac перейти в режим сна в течение выбранного времени, даже если ни одно условие запуска не выполнено. При его запуске триггеры приостанавливаются, пока вы их не возобновите.",
+    "Choose which control sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Turn on either one or both.": "Выберите разделы управления для меню в строке меню. Ручной сеанс показывает фиксированные и настраиваемые таймеры. Триггеры показывают ИИ-агента и другие автоматические условия. Можно включить один или оба раздела.",
+    "At least one control section must stay visible.": "Хотя бы один раздел управления должен оставаться видимым.",
     "Gaming": "Игры",
     "None": "Нет",
     "any": "любое",

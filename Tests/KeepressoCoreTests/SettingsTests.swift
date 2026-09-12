@@ -72,6 +72,32 @@ import Foundation
     #expect(try JSONDecoder().decode(KeepressoSettings.self, from: data).menuPanelExpanded == false)
 }
 
+@Test func menuControlSectionsDefaultOnRoundTripAndNeverBothDisappear() throws {
+    // Existing settings gain both sections when the fields are absent.
+    let json = """
+    { "triggersEnabled": true }
+    """
+    let upgraded = try JSONDecoder().decode(KeepressoSettings.self, from: Data(json.utf8))
+    #expect(upgraded.showManualSessionInMenu)
+    #expect(upgraded.showTriggerControlsInMenu)
+
+    // A user's one-section layout survives persistence.
+    var settings = KeepressoSettings.default
+    settings.showManualSessionInMenu = false
+    let data = try JSONEncoder().encode(settings)
+    let decoded = try JSONDecoder().decode(KeepressoSettings.self, from: data)
+    #expect(!decoded.showManualSessionInMenu)
+    #expect(decoded.showTriggerControlsInMenu)
+
+    // Corrupt or hand-edited settings cannot hide both primary sections.
+    let emptyJSON = """
+    { "showManualSessionInMenu": false, "showTriggerControlsInMenu": false }
+    """
+    let repaired = try JSONDecoder().decode(KeepressoSettings.self, from: Data(emptyJSON.utf8))
+    #expect(repaired.showManualSessionInMenu)
+    #expect(!repaired.showTriggerControlsInMenu)
+}
+
 @Test func optionsWithoutSimulateActivityDecodeToItsDefault() throws {
     // Same guarantee one level down: an options blob from before keep-active
     // existed still decodes (simulateUserActivity defaults off).

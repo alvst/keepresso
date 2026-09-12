@@ -54,6 +54,8 @@ APP = {
     "Startup": "Avvio",
     "Manual session": "Sessione manuale",
     "A manual session keeps the Mac awake for the selected duration even when no trigger condition is met. Starting one pauses triggers until you resume them.": "Una sessione manuale mantiene il Mac attivo per la durata selezionata anche quando nessuna condizione di attivazione è soddisfatta. Avviandola, le attivazioni vengono messe in pausa finché non le riprendi.",
+    "Choose which control sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Turn on either one or both.": "Scegli quali sezioni di controllo mostrare nel menu della barra dei menu. Sessione manuale mostra timer fissi e personalizzati. Attivatori mostra l’agente IA e le altre condizioni automatiche. Attivane una o entrambe.",
+    "At least one control section must stay visible.": "Almeno una sezione di controllo deve rimanere visibile.",
     "Gaming": "Gaming",
     "None": "Nessuno",
     "any": "una qualsiasi",

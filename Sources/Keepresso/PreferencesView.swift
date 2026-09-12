@@ -540,16 +540,29 @@ private struct GeneralTab: View {
                     .foregroundStyle(.secondary)
             }
             Section {
+                Toggle("Manual session", isOn: Binding(
+                    get: { model.showManualSessionInMenu },
+                    set: { model.showManualSessionInMenu = $0 }
+                ))
+                .disabled(model.showManualSessionInMenu && !model.showTriggerControlsInMenu)
+                Toggle("Triggers", isOn: Binding(
+                    get: { model.showTriggerControlsInMenu },
+                    set: { model.showTriggerControlsInMenu = $0 }
+                ))
+                .disabled(model.showTriggerControlsInMenu && !model.showManualSessionInMenu)
                 Toggle("Show countdown in menu bar", isOn: Binding(
                     get: { model.showCountdownInMenuBar },
                     set: { model.showCountdownInMenuBar = $0 }
                 ))
             } header: {
-                Text("Menu bar")
+                sectionHeader("Menu bar", info: L("Choose which control sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Turn on either one or both."))
             } footer: {
-                Text("Shows the remaining time next to the menu-bar icon during a timed session.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("At least one control section must stay visible.")
+                    Text("Shows the remaining time next to the menu-bar icon during a timed session.")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             Section {
                 ForEach(Array(model.quickStopDurations.enumerated()), id: \.offset) { index, duration in

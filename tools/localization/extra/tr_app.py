@@ -54,6 +54,8 @@ APP = {
     "Startup": "Başlangıç",
     "Manual session": "Manuel oturum",
     "A manual session keeps the Mac awake for the selected duration even when no trigger condition is met. Starting one pauses triggers until you resume them.": "Manuel oturum, hiçbir tetikleyici koşulu karşılanmasa bile Mac’i seçilen süre boyunca uyanık tutar. Başlatıldığında, siz yeniden etkinleştirene kadar tetikleyiciler duraklatılır.",
+    "Choose which control sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Turn on either one or both.": "Menü çubuğu açılır menüsünde hangi denetim bölümlerinin görüneceğini seçin. Manuel oturum sabit ve özel zamanlayıcıları gösterir. Tetikleyiciler, AI aracısını ve diğer otomatik koşulları gösterir. Birini veya ikisini birden açabilirsiniz.",
+    "At least one control section must stay visible.": "En az bir denetim bölümü görünür kalmalıdır.",
     "Gaming": "Oyun",
     "None": "Yok",
     "any": "herhangi biri",

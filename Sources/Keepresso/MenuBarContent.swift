@@ -116,112 +116,9 @@ struct MenuBarContent: View {
 
             heldByLine
 
-            if model.triggersEnabled && !model.triggersPaused {
-                triggerSummary
-                    .transition(.opacity)
-            }
-
             Divider()
 
-            if model.triggersEnabled && !model.triggersPaused {
-                LabeledContent("Keep awake") {
-                    Menu("For") {
-                        ForEach(Array(Self.durationOptions.enumerated()), id: \.offset) { _, option in
-                            Button(L(option.label)) { model.startManualOverride(mode: option.mode) }
-                        }
-                        Divider()
-                        Button("Custom Duration\u{2026}") { showCustomDuration = true }
-                        Button("Until a Time\u{2026}") { showUntilTime = true }
-                    }
-                    .fixedSize()
-                }
-                .popover(isPresented: $showCustomDuration) {
-                    CustomDurationEditor(initial: model.defaultMode.duration ?? 3 * 60 * 60) {
-                        model.startManualOverride(mode: .timed(duration: $0))
-                    }
-                }
-                .popover(isPresented: $showUntilTime) {
-                    UntilTimeEditor(isActive: session.isActive) { hour, minute in
-                        model.startUntil(hour: hour, minute: minute)
-                    }
-                }
-
-                // Pausing means "let my Mac sleep", so live automation
-                // leases come first: the row offers ending them, and only
-                // once none are live does it offer the pause itself.
-                if session.liveLeases.isEmpty {
-                    Text("Activation is controlled by triggers.\nEdit them in Preferences.")
-                        .font(type.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Button("Pause Triggers") { model.pauseTriggers() }
-                        .prominentActionStyle()
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Text("Activation is controlled by triggers.\nEnd the automation leases before pausing.")
-                        .font(type.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Button("End Automation Leases") { model.endAutomationLeases() }
-                        .prominentActionStyle()
-                        .frame(maxWidth: .infinity)
-                }
-            } else {
-                if model.triggersEnabled {
-                    Text("Triggers paused. Controlling manually for now.")
-                        .font(type.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                switchRow("Keep awake", isOn: Binding(
-                    get: { session.isActive },
-                    set: { _ in model.toggleManual() }
-                ))
-
-                LabeledContent("For") {
-                    Menu(Self.modeLabel(model.mode)) {
-                        ForEach(Array(Self.durationOptions.enumerated()), id: \.offset) { _, option in
-                            Button(L(option.label)) { model.mode = option.mode }
-                        }
-                        Divider()
-                        Button("Custom Duration\u{2026}") { showCustomDuration = true }
-                        Button("Until a Time\u{2026}") { showUntilTime = true }
-                    }
-                    .fixedSize()
-                }
-                .popover(isPresented: $showCustomDuration) {
-                    CustomDurationEditor(initial: model.mode.duration ?? 60 * 60) {
-                        model.mode = .timed(duration: $0)
-                    }
-                }
-                .popover(isPresented: $showUntilTime) {
-                    UntilTimeEditor(isActive: session.isActive) { hour, minute in
-                        model.startUntil(hour: hour, minute: minute)
-                    }
-                }
-
-                if session.isActive && !model.quickStopDurations.isEmpty {
-                    // The three short defaults share a line with the label;
-                    // four shortcuts, or compound durations ("1 h 30 min",
-                    // wordier in some languages), get the full panel width
-                    // on their own row so the buttons never clip.
-                    if quickStopButtonsFitInline {
-                        LabeledContent("Stop in") { quickStopButtons }
-                    } else {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Stop in")
-                            quickStopButtons
-                        }
-                    }
-                }
-
-                if model.triggersEnabled {
-                    Button("Resume Triggers") { model.resumeTriggers() }
-                        .prominentActionStyle()
-                        .frame(maxWidth: .infinity)
-                }
-            }
+            primaryControls
 
             // The option toggles and app entries fold away behind the "Show
             // less" row, leaving a status-and-controls-only panel; everything
@@ -254,6 +151,8 @@ struct MenuBarContent: View {
         .animation(.snappy(duration: 0.25), value: model.closedDisplayError)
         .animation(.snappy(duration: 0.25), value: model.helperAttention)
         .animation(.snappy(duration: 0.25), value: model.menuPanelExpanded)
+        .animation(.snappy(duration: 0.25), value: model.showManualSessionInMenu)
+        .animation(.snappy(duration: 0.25), value: model.showTriggerControlsInMenu)
         .glassPanelBackground()
         .tint(.keepressoBrew)
         // Cascades to every text that sets no font of its own (toggles,
@@ -268,8 +167,142 @@ struct MenuBarContent: View {
         }
     }
 
-    /// The middle option toggles (closed-display, only-while-brewing, battery),
-    /// hidden while the panel is collapsed.
+    /// The two main control areas are selected independently in Preferences.
+    /// Keeping them as siblings instead of one trigger/manual branch lets a
+    /// user keep both trigger status and a fixed-duration override in the panel.
+    @ViewBuilder
+    private var primaryControls: some View {
+        if model.showTriggerControlsInMenu {
+            triggerControls
+        }
+        if model.showTriggerControlsInMenu && model.showManualSessionInMenu {
+            Divider()
+        }
+        if model.showManualSessionInMenu {
+            manualSessionControls
+        }
+    }
+
+    @ViewBuilder
+    private var triggerControls: some View {
+        switchRow("Activate by triggers", isOn: Binding(
+            get: { model.triggersEnabled },
+            set: { model.triggersEnabled = $0 }
+        ))
+
+        if model.triggersEnabled && !model.triggersPaused {
+            triggerSummary
+                .transition(.opacity)
+
+            // Pausing means "let my Mac sleep", so live automation leases come
+            // first: the row offers ending them before trigger control pauses.
+            if session.liveLeases.isEmpty {
+                Text("Activation is controlled by triggers.\nEdit them in Preferences.")
+                    .font(type.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("Pause Triggers") { model.pauseTriggers() }
+                    .prominentActionStyle()
+                    .frame(maxWidth: .infinity)
+            } else {
+                Text("Activation is controlled by triggers.\nEnd the automation leases before pausing.")
+                    .font(type.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("End Automation Leases") { model.endAutomationLeases() }
+                    .prominentActionStyle()
+                    .frame(maxWidth: .infinity)
+            }
+        } else if model.triggersEnabled {
+            Text("Triggers paused. Controlling manually for now.")
+                .font(type.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("Resume Triggers") { model.resumeTriggers() }
+                .prominentActionStyle()
+                .frame(maxWidth: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var manualSessionControls: some View {
+        if model.triggersEnabled && !model.triggersPaused {
+            LabeledContent("Keep awake") {
+                Menu("For") {
+                    ForEach(Array(Self.durationOptions.enumerated()), id: \.offset) { _, option in
+                        Button(L(option.label)) { model.startManualOverride(mode: option.mode) }
+                    }
+                    Divider()
+                    Button("Custom Duration\u{2026}") { showCustomDuration = true }
+                    Button("Until a Time\u{2026}") { showUntilTime = true }
+                }
+                .fixedSize()
+            }
+            .popover(isPresented: $showCustomDuration) {
+                CustomDurationEditor(initial: model.defaultMode.duration ?? 3 * 60 * 60) {
+                    model.startManualOverride(mode: .timed(duration: $0))
+                }
+            }
+            .popover(isPresented: $showUntilTime) {
+                UntilTimeEditor(isActive: session.isActive) { hour, minute in
+                    model.startUntil(hour: hour, minute: minute)
+                }
+            }
+        } else {
+            switchRow("Keep awake", isOn: Binding(
+                get: { session.isActive },
+                set: { _ in model.toggleManual() }
+            ))
+
+            LabeledContent("For") {
+                Menu(Self.modeLabel(model.mode)) {
+                    ForEach(Array(Self.durationOptions.enumerated()), id: \.offset) { _, option in
+                        Button(L(option.label)) { model.mode = option.mode }
+                    }
+                    Divider()
+                    Button("Custom Duration\u{2026}") { showCustomDuration = true }
+                    Button("Until a Time\u{2026}") { showUntilTime = true }
+                }
+                .fixedSize()
+            }
+            .popover(isPresented: $showCustomDuration) {
+                CustomDurationEditor(initial: model.mode.duration ?? 60 * 60) {
+                    model.mode = .timed(duration: $0)
+                }
+            }
+            .popover(isPresented: $showUntilTime) {
+                UntilTimeEditor(isActive: session.isActive) { hour, minute in
+                    model.startUntil(hour: hour, minute: minute)
+                }
+            }
+
+            if session.isActive && !model.quickStopDurations.isEmpty {
+                // Compound durations or four shortcuts need their own row so
+                // translated labels never clip in the compact panel.
+                if quickStopButtonsFitInline {
+                    LabeledContent("Stop in") { quickStopButtons }
+                } else {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Stop in")
+                        quickStopButtons
+                    }
+                }
+            }
+
+            // If the user hides the trigger section, never strand a paused
+            // trigger engine with no path back from the menu.
+            if model.triggersEnabled && !model.showTriggerControlsInMenu {
+                Button("Resume Triggers") { model.resumeTriggers() }
+                    .prominentActionStyle()
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    /// The middle option toggles (session-scoped closed-display and battery),
+    /// hidden while the panel is collapsed. The persistent sleep override is
+    /// intentionally kept in Preferences; the dropdown always offers a clear
+    /// way back when the global setting is live.
     @ViewBuilder
     private var optionToggles: some View {
         Divider()
