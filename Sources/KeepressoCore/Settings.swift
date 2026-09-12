@@ -139,8 +139,8 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         menuPanelExpanded: Bool = true,
         showManualSessionInMenu: Bool = true,
         showTriggerControlsInMenu: Bool = true,
-        showQuickSettingsInMenu: Bool = true,
-        showToolsInMenu: Bool = true,
+        showQuickSettingsInMenu: Bool = false,
+        showToolsInMenu: Bool = false,
         glassClarity: Int = 50,
         awdlAutoWithGaming: Bool = false,
         awdlNotifications: Bool = false,
@@ -291,8 +291,8 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         menuPanelExpanded = try c.decodeIfPresent(Bool.self, forKey: .menuPanelExpanded) ?? true
         let decodedManualSection = try c.decodeIfPresent(Bool.self, forKey: .showManualSessionInMenu) ?? true
         let decodedTriggerSection = try c.decodeIfPresent(Bool.self, forKey: .showTriggerControlsInMenu) ?? true
-        let decodedQuickSettings = try c.decodeIfPresent(Bool.self, forKey: .showQuickSettingsInMenu) ?? true
-        let decodedTools = try c.decodeIfPresent(Bool.self, forKey: .showToolsInMenu) ?? true
+        let decodedQuickSettings = try c.decodeIfPresent(Bool.self, forKey: .showQuickSettingsInMenu) ?? false
+        let decodedTools = try c.decodeIfPresent(Bool.self, forKey: .showToolsInMenu) ?? false
         if decodedManualSection || decodedTriggerSection || decodedQuickSettings || decodedTools {
             showManualSessionInMenu = decodedManualSection
             showTriggerControlsInMenu = decodedTriggerSection

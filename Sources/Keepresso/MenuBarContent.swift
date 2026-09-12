@@ -179,7 +179,6 @@ struct MenuBarContent: View {
         hasVisiblePrimaryControls || (model.menuPanelExpanded && model.showQuickSettingsInMenu)
     }
 
->>>>>>> 8398764 (Add comprehensive menu section customization)
     @ViewBuilder
     private var primaryControls: some View {
         if model.showTriggerControlsInMenu {

@@ -72,16 +72,17 @@ import Foundation
     #expect(try JSONDecoder().decode(KeepressoSettings.self, from: data).menuPanelExpanded == false)
 }
 
-@Test func menuControlSectionsDefaultOnRoundTripAndNeverAllDisappear() throws {
-    // Existing settings gain every section when the fields are absent.
+@Test func menuControlSectionsUseFocusedDefaultsRoundTripAndNeverAllDisappear() throws {
+    // Existing settings keep the two primary sections, while secondary
+    // convenience sections stay opt-in when their fields are absent.
     let json = """
     { "triggersEnabled": true }
     """
     let upgraded = try JSONDecoder().decode(KeepressoSettings.self, from: Data(json.utf8))
     #expect(upgraded.showManualSessionInMenu)
     #expect(upgraded.showTriggerControlsInMenu)
-    #expect(upgraded.showQuickSettingsInMenu)
-    #expect(upgraded.showToolsInMenu)
+    #expect(!upgraded.showQuickSettingsInMenu)
+    #expect(!upgraded.showToolsInMenu)
 
     // A user's one-section layout survives persistence.
     var settings = KeepressoSettings.default

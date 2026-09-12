@@ -346,7 +346,8 @@ Updates, and Quit.
   until a time of day. The cup fills and animates while brewing.
 - **Your menu, your controls.** In Preferences > General > Menu bar, independently
   show or hide **Manual session**, **Triggers**, **Quick settings** (lid and
-  battery), and **Tools & shortcuts**. Use any combination; status,
+  battery), and **Tools & shortcuts**. Manual session and Triggers are shown by
+  default; use any combination. Status,
   Preferences, and Quit always remain available.
 - **Show less.** The disclosure row at the bottom of the panel folds the option
   toggles, tools, and help away, leaving the selected primary controls, status,

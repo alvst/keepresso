@@ -575,7 +575,6 @@ private struct GeneralTab: View {
                     set: { model.showToolsInMenu = $0 }
                 ))
                 .disabled(isLastVisibleMenuSection(model.showToolsInMenu))
-                Divider()
                 Toggle("Show countdown in menu bar", isOn: Binding(
                     get: { model.showCountdownInMenuBar },
                     set: { model.showCountdownInMenuBar = $0 }
