@@ -1,5 +1,32 @@
 import Foundation
 
+/// Persisted, user-orderable menu sections.
+public enum MenuBarSection: String, Codable, CaseIterable, Identifiable, Sendable {
+    case manualSession
+    case triggers
+    case quickSettings
+    case toolsAndShortcuts
+
+    public var id: String { rawValue }
+
+    /// Matches the menu's layout before section ordering was customizable.
+    public static let defaultOrder: [MenuBarSection] = [
+        .triggers, .manualSession, .quickSettings, .toolsAndShortcuts,
+    ]
+
+    public static let compactVisibleCount = 2
+
+    public static func displayedSections(
+        in order: [MenuBarSection],
+        enabled: Set<MenuBarSection>,
+        expanded: Bool
+    ) -> [MenuBarSection] {
+        let visible = KeepressoSettings.normalizedMenuSectionOrder(order)
+            .filter(enabled.contains)
+        return expanded ? visible : Array(visible.prefix(compactVisibleCount))
+    }
+}
+
 /// Everything Keepresso persists across launches.
 public struct KeepressoSettings: Codable, Equatable, Sendable {
     /// What to keep awake (system / display / screen-saver yield).
@@ -50,14 +77,18 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
     /// collapsed status-and-controls-only layout (the panel's "Show less" row).
     /// Expanded by default.
     public var menuPanelExpanded: Bool
-    /// Whether the manual start/timer controls appear in the menu-bar panel.
+    /// Show manual-session controls in the menu.
     public var showManualSessionInMenu: Bool
-    /// Whether trigger status and pause/resume controls appear in the panel.
+    /// Show trigger controls in the menu.
     public var showTriggerControlsInMenu: Bool
-    /// Whether the lid-closed and low-battery controls appear in the panel.
+    /// Show lid and battery controls in the menu.
     public var showQuickSettingsInMenu: Bool
-    /// Whether the specialized assistant shortcuts appear in the panel.
+    /// Show tool shortcuts in the menu.
     public var showToolsInMenu: Bool
+    /// Whether the Tools section is expanded.
+    public var toolsSectionExpanded: Bool
+    /// Display order for the four user-configurable menu sections.
+    public var menuSectionOrder: [MenuBarSection]
     /// How see-through the menu-bar dropdown is, 0 (fully frosty,
     /// strongest readability backing) to 100 (clearest Liquid Glass).
     /// Defaults to the halfway 50.
@@ -141,6 +172,8 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         showTriggerControlsInMenu: Bool = true,
         showQuickSettingsInMenu: Bool = false,
         showToolsInMenu: Bool = false,
+        toolsSectionExpanded: Bool = true,
+        menuSectionOrder: [MenuBarSection] = MenuBarSection.defaultOrder,
         glassClarity: Int = 50,
         awdlAutoWithGaming: Bool = false,
         awdlNotifications: Bool = false,
@@ -184,13 +217,14 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
             self.showQuickSettingsInMenu = showQuickSettingsInMenu
             self.showToolsInMenu = showToolsInMenu
         } else {
-            // A settings import or hand-written initializer must not produce a
-            // panel with no user-selected sections at all.
+            // Repair configurations with no visible sections.
             self.showManualSessionInMenu = true
             self.showTriggerControlsInMenu = false
             self.showQuickSettingsInMenu = false
             self.showToolsInMenu = false
         }
+        self.toolsSectionExpanded = toolsSectionExpanded
+        self.menuSectionOrder = Self.normalizedMenuSectionOrder(menuSectionOrder)
         self.glassClarity = min(max(glassClarity, 0), 100)
         self.awdlAutoWithGaming = awdlAutoWithGaming
         self.awdlNotifications = awdlNotifications
@@ -304,6 +338,13 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
             showQuickSettingsInMenu = false
             showToolsInMenu = false
         }
+        toolsSectionExpanded = try c.decodeIfPresent(Bool.self, forKey: .toolsSectionExpanded) ?? true
+        // Ignore unknown section names from newer versions.
+        let decodedSectionOrder = (try c.decodeIfPresent(
+            [String].self, forKey: .menuSectionOrder))?
+            .compactMap(MenuBarSection.init(rawValue:))
+            ?? MenuBarSection.defaultOrder
+        menuSectionOrder = Self.normalizedMenuSectionOrder(decodedSectionOrder)
         glassClarity = min(max(try c.decodeIfPresent(Int.self, forKey: .glassClarity) ?? 50, 0), 100)
         awdlAutoWithGaming = try c.decodeIfPresent(Bool.self, forKey: .awdlAutoWithGaming) ?? false
         awdlNotifications = try c.decodeIfPresent(Bool.self, forKey: .awdlNotifications) ?? false
@@ -339,6 +380,16 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
 
     /// The most quick-stop shortcuts the menu row holds before it overflows.
     public static let maxQuickStopDurations = 4
+
+    /// Dedupe known sections, then append any missing defaults.
+    public static func normalizedMenuSectionOrder(
+        _ raw: [MenuBarSection]
+    ) -> [MenuBarSection] {
+        var seen = Set<MenuBarSection>()
+        var result = raw.filter { seen.insert($0).inserted }
+        result.append(contentsOf: MenuBarSection.defaultOrder.filter { seen.insert($0).inserted })
+        return result
+    }
 
     /// Sanitize a quick-stop duration list from any source (the editor, an
     /// imported blob, a hand-edited file): drop non-positive entries, dedupe,

@@ -345,13 +345,15 @@ Updates, and Quit.
   indefinitely, a preset (15 minutes, 1 hour, 4 hours), any custom duration, or
   until a time of day. The cup fills and animates while brewing.
 - **Your menu, your controls.** In Preferences > General > Menu bar, independently
-  show or hide **Manual session**, **Triggers**, **Quick settings** (lid and
-  battery), and **Tools & shortcuts**. Manual session and Triggers are shown by
-  default; use any combination. Status,
-  Preferences, and Quit always remain available.
+  show, hide, and arrange **Manual session**, **Triggers**, **Quick settings**
+  (lid and battery), and **Tools & shortcuts**. Manual session and Triggers are
+  shown by default; use any combination and order. Status, Preferences, and
+  Quit always remain available.
 - **Show less.** The disclosure row at the bottom of the panel folds the option
-  toggles, tools, and help away, leaving the selected primary controls, status,
-  Preferences, and Quit. Keepresso remembers the choice.
+  toggles and help away, leaving the first two enabled menu sections in the
+  user's chosen order, plus status, Preferences, and Quit. Move a section up in
+  Preferences to prioritize it in this compact view. Keepresso remembers the
+  choice.
 - **Keep awake with lid closed.** Toggle it right from the menu before you shut
   the lid or unplug. It flips a system setting (`pmset disablesleep`), so it
   needs administrator rights: silent with the helper installed, one password

@@ -39,7 +39,6 @@ struct MenuBarContent: View {
     @State private var lidRowShakes = 0
     @State private var showCustomDuration = false
     @State private var showUntilTime = false
-    @State private var toolsExpanded = false
     @State private var helpExpanded = false
 
     static let durationOptions: [(label: String, mode: SessionMode)] = [
@@ -118,15 +117,7 @@ struct MenuBarContent: View {
 
             Divider()
 
-            primaryControls
-
-            // Secondary sections still respect Show more/less, while their
-            // presence in the expanded panel is chosen independently in
-            // Preferences.
-            if model.menuPanelExpanded && model.showQuickSettingsInMenu {
-                if hasVisiblePrimaryControls { Divider() }
-                quickSettings
-            }
+            configuredMenuSections
 
             statusStack
 
@@ -154,6 +145,7 @@ struct MenuBarContent: View {
         .animation(.snappy(duration: 0.25), value: model.showTriggerControlsInMenu)
         .animation(.snappy(duration: 0.25), value: model.showQuickSettingsInMenu)
         .animation(.snappy(duration: 0.25), value: model.showToolsInMenu)
+        .animation(.snappy(duration: 0.25), value: model.menuSectionOrder)
         .glassPanelBackground()
         .tint(.keepressoBrew)
         // Cascades to every text that sets no font of its own (toggles,
@@ -168,27 +160,46 @@ struct MenuBarContent: View {
         }
     }
 
-    /// The two main control areas are selected independently in Preferences.
-    /// Keeping them as siblings instead of one trigger/manual branch lets a
-    /// user keep both trigger status and a fixed-duration override in the panel.
-    private var hasVisiblePrimaryControls: Bool {
-        model.showTriggerControlsInMenu || model.showManualSessionInMenu
-    }
-
-    private var hasVisibleConfiguredControls: Bool {
-        hasVisiblePrimaryControls || (model.menuPanelExpanded && model.showQuickSettingsInMenu)
+    /// Enabled sections in saved order; compact mode shows the first two.
+    private var displayedMenuSections: [MenuBarSection] {
+        let enabled = Set(model.menuSectionOrder.filter { section in
+            switch section {
+            case .manualSession:
+                model.showManualSessionInMenu
+            case .triggers:
+                model.showTriggerControlsInMenu
+            case .quickSettings:
+                model.showQuickSettingsInMenu
+            case .toolsAndShortcuts:
+                model.showToolsInMenu
+            }
+        })
+        return MenuBarSection.displayedSections(
+            in: model.menuSectionOrder,
+            enabled: enabled,
+            expanded: model.menuPanelExpanded
+        )
     }
 
     @ViewBuilder
-    private var primaryControls: some View {
-        if model.showTriggerControlsInMenu {
-            triggerControls
+    private var configuredMenuSections: some View {
+        ForEach(displayedMenuSections) { section in
+            if section != displayedMenuSections.first { Divider() }
+            configuredMenuSection(section)
         }
-        if model.showTriggerControlsInMenu && model.showManualSessionInMenu {
-            Divider()
-        }
-        if model.showManualSessionInMenu {
+    }
+
+    @ViewBuilder
+    private func configuredMenuSection(_ section: MenuBarSection) -> some View {
+        switch section {
+        case .manualSession:
             manualSessionControls
+        case .triggers:
+            triggerControls
+        case .quickSettings:
+            quickSettings
+        case .toolsAndShortcuts:
+            toolsControls
         }
     }
 
@@ -203,8 +214,7 @@ struct MenuBarContent: View {
             triggerSummary
                 .transition(.opacity)
 
-            // Pausing means "let my Mac sleep", so live automation leases come
-            // first: the row offers ending them before trigger control pauses.
+            // End live leases before pausing trigger control.
             if session.liveLeases.isEmpty {
                 Text("Activation is controlled by triggers.\nEdit them in Preferences.")
                     .font(type.caption)
@@ -223,7 +233,7 @@ struct MenuBarContent: View {
                     .frame(maxWidth: .infinity)
             }
         } else if model.triggersEnabled {
-            Text("Triggers paused. Controlling manually for now.")
+            Text("No active triggers. Resume to use automatic rules.")
                 .font(type.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -286,8 +296,7 @@ struct MenuBarContent: View {
             }
 
             if session.isActive && !model.quickStopDurations.isEmpty {
-                // Compound durations or four shortcuts need their own row so
-                // translated labels never clip in the compact panel.
+                // Use a full-width row when compact buttons may clip.
                 if quickStopButtonsFitInline {
                     LabeledContent("Stop in") { quickStopButtons }
                 } else {
@@ -298,8 +307,7 @@ struct MenuBarContent: View {
                 }
             }
 
-            // If the user hides the trigger section, never strand a paused
-            // trigger engine with no path back from the menu.
+            // Keep trigger resumption available when its section is hidden.
             if model.triggersEnabled && !model.showTriggerControlsInMenu {
                 Button("Resume Triggers") { model.resumeTriggers() }
                     .prominentActionStyle()
@@ -409,44 +417,46 @@ struct MenuBarContent: View {
         }
     }
 
-    /// Preferences and Quit are permanent escape hatches. The specialized
-    /// assistants form the configurable Tools section; Help stays available
-    /// in the expanded panel without becoming another preference toggle.
+    /// Configurable tool shortcuts.
+    @ViewBuilder
+    private var toolsControls: some View {
+        Button {
+            withAnimation(.snappy(duration: 0.2)) {
+                model.toolsSectionExpanded.toggle()
+            }
+        } label: {
+            HStack {
+                Text("Tools")
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(type.caption2)
+                    .foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(model.toolsSectionExpanded ? 90 : 0))
+            }
+        }
+        .buttonStyle(.menuRow)
+        if model.toolsSectionExpanded {
+            VStack(alignment: .leading, spacing: 0) {
+                Button("Headless Setup…") { open(KeepressoApp.setupWindowID) }
+                    .buttonStyle(.menuRow)
+                Button("Gaming & Streaming…") { open(KeepressoApp.streamingWindowID) }
+                    .buttonStyle(.menuRow)
+                Button("Keyboard Cleaner…") { open(KeepressoApp.keyboardCleanerWindowID) }
+                    .buttonStyle(.menuRow)
+                Button("Public Wi-Fi…") { open(KeepressoApp.wifiAssistantWindowID) }
+                    .buttonStyle(.menuRow)
+            }
+            .padding(.leading, 12)
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+    }
+
+    /// Preferences and Quit stay visible; Help expands with the panel.
     @ViewBuilder
     private var appEntries: some View {
         Button("Preferences…") { open(KeepressoApp.preferencesWindowID) }
             .keyboardShortcut(",")
             .buttonStyle(.menuRow)
-
-        if model.menuPanelExpanded && model.showToolsInMenu {
-            Button {
-                withAnimation(.snappy(duration: 0.2)) { toolsExpanded.toggle() }
-            } label: {
-                HStack {
-                    Text("Tools")
-                    Spacer(minLength: 8)
-                    Image(systemName: "chevron.right")
-                        .font(type.caption2)
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(.degrees(toolsExpanded ? 90 : 0))
-                }
-            }
-            .buttonStyle(.menuRow)
-            if toolsExpanded {
-                VStack(alignment: .leading, spacing: 0) {
-                    Button("Headless Setup…") { open(KeepressoApp.setupWindowID) }
-                        .buttonStyle(.menuRow)
-                    Button("Gaming & Streaming…") { open(KeepressoApp.streamingWindowID) }
-                        .buttonStyle(.menuRow)
-                    Button("Keyboard Cleaner…") { open(KeepressoApp.keyboardCleanerWindowID) }
-                        .buttonStyle(.menuRow)
-                    Button("Public Wi-Fi…") { open(KeepressoApp.wifiAssistantWindowID) }
-                        .buttonStyle(.menuRow)
-                }
-                .padding(.leading, 12)
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-        }
 
         if model.menuPanelExpanded {
             Button {
@@ -486,8 +496,7 @@ struct MenuBarContent: View {
             .buttonStyle(.menuRow)
     }
 
-    /// The slim "Show less" / "Show more" row that folds secondary settings,
-    /// tools, and help away, pinned to the panel's bottom in both states.
+    /// Compact mode keeps the first two enabled sections.
     private var expandToggleRow: some View {
         Button {
             model.menuPanelExpanded.toggle()

@@ -1556,8 +1556,7 @@ final class AppModel {
         }
     }
 
-    /// The primary menu sections are independently configurable, but the panel
-    /// must always retain at least one way to control keep-awake behavior.
+    /// Menu-section visibility, with at least one section required.
     var showManualSessionInMenu: Bool {
         get { settings.showManualSessionInMenu }
         set {
@@ -1596,6 +1595,28 @@ final class AppModel {
             settings.showToolsInMenu = newValue
             persist()
         }
+    }
+
+    var toolsSectionExpanded: Bool {
+        get { settings.toolsSectionExpanded }
+        set {
+            settings.toolsSectionExpanded = newValue
+            persist()
+        }
+    }
+
+    /// Saved display order for the four configurable menu sections.
+    var menuSectionOrder: [MenuBarSection] { settings.menuSectionOrder }
+
+    /// Move and persist a menu section by one position.
+    func moveMenuSection(_ section: MenuBarSection, by offset: Int) {
+        guard let source = settings.menuSectionOrder.firstIndex(of: section) else { return }
+        let destination = source + offset
+        guard settings.menuSectionOrder.indices.contains(destination) else { return }
+        settings.menuSectionOrder.swapAt(source, destination)
+        settings.menuSectionOrder = KeepressoSettings.normalizedMenuSectionOrder(
+            settings.menuSectionOrder)
+        persist()
     }
 
     /// How see-through the panel and windows are, 0 (frosted default) to 100

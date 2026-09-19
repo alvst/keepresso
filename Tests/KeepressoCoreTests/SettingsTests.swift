@@ -72,6 +72,22 @@ import Foundation
     #expect(try JSONDecoder().decode(KeepressoSettings.self, from: data).menuPanelExpanded == false)
 }
 
+@Test func toolsSectionDefaultsOpenAndRemembersCollapsedState() throws {
+    let legacyJSON = """
+    { "showToolsInMenu": true }
+    """
+    let upgraded = try JSONDecoder().decode(
+        KeepressoSettings.self, from: Data(legacyJSON.utf8))
+    #expect(upgraded.toolsSectionExpanded)
+
+    var settings = KeepressoSettings.default
+    settings.toolsSectionExpanded = false
+    let data = try JSONEncoder().encode(settings)
+    #expect(try JSONDecoder().decode(
+        KeepressoSettings.self, from: data
+    ).toolsSectionExpanded == false)
+}
+
 @Test func menuControlSectionsUseFocusedDefaultsRoundTripAndNeverAllDisappear() throws {
     // Existing settings keep the two primary sections, while secondary
     // convenience sections stay opt-in when their fields are absent.
@@ -110,6 +126,52 @@ import Foundation
     #expect(!repaired.showTriggerControlsInMenu)
     #expect(!repaired.showQuickSettingsInMenu)
     #expect(!repaired.showToolsInMenu)
+}
+
+@Test func menuSectionOrderDefaultsRoundTripsAndRepairsMalformedLists() throws {
+    let legacyJSON = """
+    { "triggersEnabled": true }
+    """
+    let upgraded = try JSONDecoder().decode(
+        KeepressoSettings.self, from: Data(legacyJSON.utf8))
+    #expect(upgraded.menuSectionOrder == MenuBarSection.defaultOrder)
+
+    var settings = KeepressoSettings.default
+    settings.menuSectionOrder = [
+        .manualSession, .toolsAndShortcuts, .triggers, .quickSettings,
+    ]
+    let data = try JSONEncoder().encode(settings)
+    let decoded = try JSONDecoder().decode(KeepressoSettings.self, from: data)
+    #expect(decoded.menuSectionOrder == settings.menuSectionOrder)
+
+    // Duplicates are removed, unknown future values are ignored, and missing
+    // known sections return at the end in their stable default order.
+    let malformedJSON = """
+    {
+      "menuSectionOrder": ["quickSettings", "quickSettings", "futureSection", "triggers"]
+    }
+    """
+    let repaired = try JSONDecoder().decode(
+        KeepressoSettings.self, from: Data(malformedJSON.utf8))
+    #expect(repaired.menuSectionOrder == [
+        .quickSettings, .triggers, .manualSession, .toolsAndShortcuts,
+    ])
+}
+
+@Test func collapsedMenuKeepsTheFirstTwoEnabledSections() {
+    let order: [MenuBarSection] = [
+        .toolsAndShortcuts, .quickSettings, .triggers, .manualSession,
+    ]
+    let enabled: Set<MenuBarSection> = [
+        .toolsAndShortcuts, .triggers, .manualSession,
+    ]
+
+    #expect(MenuBarSection.displayedSections(
+        in: order, enabled: enabled, expanded: false
+    ) == [.toolsAndShortcuts, .triggers])
+    #expect(MenuBarSection.displayedSections(
+        in: order, enabled: enabled, expanded: true
+    ) == [.toolsAndShortcuts, .triggers, .manualSession])
 }
 
 @Test func optionsWithoutSimulateActivityDecodeToItsDefault() throws {
