@@ -26,6 +26,7 @@
 "Battery threshold" = "Seuil de batterie";
 "Presence" = "Présence";
 "Menu bar" = "Barre des menus";
+"Customize menu sections" = "Personnaliser les sections du menu";
 "Move up" = "Déplacer vers le haut";
 "Move down" = "Déplacer vers le bas";
 "Use the arrows to arrange the menu sections." = "Utilisez les flèches pour organiser les sections du menu.";
@@ -34,6 +35,8 @@
 "Welcome" = "Bienvenue";
 "Keeps the Mac running with the lid shut and no external display. This flips a system setting that needs administrator rights: silent with the administrator helper installed (Preferences ▸ General), otherwise macOS asks for your password." = "Garde le Mac actif capot fermé et sans écran externe. Cela modifie un réglage système qui nécessite des droits d'administrateur : silencieux avec l'assistant administrateur installé (Réglages ▸ Général), sinon macOS demande votre mot de passe.";
 "Keep running with the lid shut and no external display. Stays on until you switch it off." = "Gardez-le actif capot fermé et sans écran externe. Il reste actif jusqu’à ce que vous le désactiviez.";
+"Restore System Sleep" = "Rétablir la suspension système";
+"Keep enabled until I turn it off" = "Garder activé jusqu’à désactivation";
 "Handle it automatically" = "Le gérer automatiquement";
 "Enable “Only while brewing” so closed-display follows each keep-awake session (your triggers or a manual brew) and turns off when nothing is holding the Mac awake." = "Activez « Uniquement pendant l’infusion » pour que le mode écran fermé suive chaque session (vos déclencheurs ou une infusion manuelle) et s’éteigne quand plus rien ne maintient le Mac éveillé.";
 "Turns closed-display mode on when a keep-awake session starts and off when it ends or Keepresso quits." = "Active le mode écran fermé au début d'une session et le désactive à la fin ou quand Keepresso se ferme.";
@@ -61,7 +64,7 @@
 "Quick settings" = "Réglages rapides";
 "Tools & shortcuts" = "Outils et raccourcis";
 "A manual session keeps the Mac awake for the selected duration even when no trigger condition is met. Starting one pauses triggers until you resume them." = "Une session manuelle garde le Mac éveillé pendant la durée sélectionnée, même si aucune condition de déclenchement n’est remplie. La démarrer met les déclencheurs en pause jusqu’à ce que vous les repreniez.";
-"Choose which sections appear in the menu-bar dropdown. Turn on any combination." = "Choisissez les sections qui apparaissent dans le menu déroulant de la barre des menus. Activez la combinaison de votre choix.";
+"Choose which sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Quick settings contains lid and battery controls. Tools & shortcuts opens the specialized assistants. Turn on any combination." = "Choisissez les sections qui apparaissent dans le menu déroulant de la barre des menus. Session manuelle affiche les minuteurs fixes et personnalisés. Déclencheurs affiche l’agent IA et les autres conditions automatiques. Réglages rapides contient les commandes du capot et de la batterie. Outils et raccourcis ouvre les assistants spécialisés. Activez la combinaison de votre choix.";
 "At least one control section must stay visible." = "Au moins une section de contrôle doit rester visible.";
 "Gaming" = "Jeu";
 "None" = "Aucun";
@@ -210,6 +213,8 @@
 "Times & days" = "Heures et jours";
 "Toggle shortcut" = "Raccourci de bascule";
 "No active triggers. Resume to use automatic rules." = "Aucun déclencheur actif. Reprenez-les pour utiliser les règles automatiques.";
+"Triggers paused. Controlling manually for now." = "Déclencheurs en pause. Contrôle manuel pour l’instant.";
+"Ends at %@" = "Se termine à %@";
 "Until a Time…" = "Jusqu’à une heure…";
 "VPN connected" = "VPN connecté";
 "View on GitHub" = "Voir sur GitHub";

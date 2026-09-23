@@ -1,6 +1,7 @@
 import Foundation
 
-/// Persisted, user-orderable menu sections.
+/// User-orderable sections in the menu-bar dropdown. Raw values are persisted,
+/// so keep them stable across releases.
 public enum MenuBarSection: String, Codable, CaseIterable, Identifiable, Sendable {
     case manualSession
     case triggers
@@ -77,15 +78,19 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
     /// collapsed status-and-controls-only layout (the panel's "Show less" row).
     /// Expanded by default.
     public var menuPanelExpanded: Bool
-    /// Show manual-session controls in the menu.
+    /// Whether the user has opted into changing menu-section visibility and
+    /// order. Off preserves the established adaptive menu layout.
+    public var menuCustomizationEnabled: Bool
+    /// Whether the manual start/timer controls appear in the menu-bar panel.
     public var showManualSessionInMenu: Bool
-    /// Show trigger controls in the menu.
+    /// Whether trigger status and pause/resume controls appear in the panel.
     public var showTriggerControlsInMenu: Bool
-    /// Show lid and battery controls in the menu.
+    /// Whether the lid-closed and low-battery controls appear in the panel.
     public var showQuickSettingsInMenu: Bool
-    /// Show tool shortcuts in the menu.
+    /// Whether the specialized assistant shortcuts appear in the panel.
     public var showToolsInMenu: Bool
-    /// Whether the Tools section is expanded.
+    /// Whether the specialized assistant shortcuts are disclosed. Open by
+    /// default, then remembers the user's choice across menu and app launches.
     public var toolsSectionExpanded: Bool
     /// Display order for the four user-configurable menu sections.
     public var menuSectionOrder: [MenuBarSection]
@@ -168,10 +173,11 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         pauseBelowBatteryPercent: Int? = nil,
         showCountdownInMenuBar: Bool = false,
         menuPanelExpanded: Bool = true,
+        menuCustomizationEnabled: Bool = false,
         showManualSessionInMenu: Bool = true,
         showTriggerControlsInMenu: Bool = true,
-        showQuickSettingsInMenu: Bool = false,
-        showToolsInMenu: Bool = false,
+        showQuickSettingsInMenu: Bool = true,
+        showToolsInMenu: Bool = true,
         toolsSectionExpanded: Bool = true,
         menuSectionOrder: [MenuBarSection] = MenuBarSection.defaultOrder,
         glassClarity: Int = 50,
@@ -210,6 +216,7 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
         self.pauseBelowBatteryPercent = pauseBelowBatteryPercent.map(Self.clampedBatteryPausePercent)
         self.showCountdownInMenuBar = showCountdownInMenuBar
         self.menuPanelExpanded = menuPanelExpanded
+        self.menuCustomizationEnabled = menuCustomizationEnabled
         if showManualSessionInMenu || showTriggerControlsInMenu
             || showQuickSettingsInMenu || showToolsInMenu {
             self.showManualSessionInMenu = showManualSessionInMenu
@@ -217,7 +224,8 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
             self.showQuickSettingsInMenu = showQuickSettingsInMenu
             self.showToolsInMenu = showToolsInMenu
         } else {
-            // Repair configurations with no visible sections.
+            // A settings import or hand-written initializer must not produce a
+            // panel with no user-selected sections at all.
             self.showManualSessionInMenu = true
             self.showTriggerControlsInMenu = false
             self.showQuickSettingsInMenu = false
@@ -323,10 +331,14 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
             .map(Self.clampedBatteryPausePercent)
         showCountdownInMenuBar = try c.decodeIfPresent(Bool.self, forKey: .showCountdownInMenuBar) ?? false
         menuPanelExpanded = try c.decodeIfPresent(Bool.self, forKey: .menuPanelExpanded) ?? true
+        // Menu customization was introduced as an opt-in. A settings blob from
+        // an older release must continue to render the established layout.
+        menuCustomizationEnabled = try c.decodeIfPresent(
+            Bool.self, forKey: .menuCustomizationEnabled) ?? false
         let decodedManualSection = try c.decodeIfPresent(Bool.self, forKey: .showManualSessionInMenu) ?? true
         let decodedTriggerSection = try c.decodeIfPresent(Bool.self, forKey: .showTriggerControlsInMenu) ?? true
-        let decodedQuickSettings = try c.decodeIfPresent(Bool.self, forKey: .showQuickSettingsInMenu) ?? false
-        let decodedTools = try c.decodeIfPresent(Bool.self, forKey: .showToolsInMenu) ?? false
+        let decodedQuickSettings = try c.decodeIfPresent(Bool.self, forKey: .showQuickSettingsInMenu) ?? true
+        let decodedTools = try c.decodeIfPresent(Bool.self, forKey: .showToolsInMenu) ?? true
         if decodedManualSection || decodedTriggerSection || decodedQuickSettings || decodedTools {
             showManualSessionInMenu = decodedManualSection
             showTriggerControlsInMenu = decodedTriggerSection
@@ -339,7 +351,8 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
             showToolsInMenu = false
         }
         toolsSectionExpanded = try c.decodeIfPresent(Bool.self, forKey: .toolsSectionExpanded) ?? true
-        // Ignore unknown section names from newer versions.
+        // Decode raw strings so a section added by a newer version is ignored
+        // instead of making the user's entire settings file fail to load.
         let decodedSectionOrder = (try c.decodeIfPresent(
             [String].self, forKey: .menuSectionOrder))?
             .compactMap(MenuBarSection.init(rawValue:))
@@ -381,7 +394,9 @@ public struct KeepressoSettings: Codable, Equatable, Sendable {
     /// The most quick-stop shortcuts the menu row holds before it overflows.
     public static let maxQuickStopDurations = 4
 
-    /// Dedupe known sections, then append any missing defaults.
+    /// Keep the first occurrence of every known section and append any missing
+    /// sections in default order. This repairs imported or hand-edited lists
+    /// without discarding the user's valid ordering choices.
     public static func normalizedMenuSectionOrder(
         _ raw: [MenuBarSection]
     ) -> [MenuBarSection] {

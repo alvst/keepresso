@@ -26,6 +26,7 @@
 "Battery threshold" = "Töltöttségi küszöb";
 "Presence" = "Jelenlét";
 "Menu bar" = "Menüsor";
+"Customize menu sections" = "Menüszakaszok testreszabása";
 "Move up" = "Mozgatás felfelé";
 "Move down" = "Mozgatás lefelé";
 "Use the arrows to arrange the menu sections." = "A nyílgombokkal rendezheti a menü szakaszait.";
@@ -34,6 +35,8 @@
 "Welcome" = "Üdvözlés";
 "Keeps the Mac running with the lid shut and no external display. This flips a system setting that needs administrator rights: silent with the administrator helper installed (Preferences ▸ General), otherwise macOS asks for your password." = "A Macet csukott fedéllel és külső kijelző nélkül is működésben tartja. Ez egy rendszergazdai jogokat igénylő rendszerbeállítást állít át: telepített rendszergazdai segéddel csendes (Beállítások ▸ Általános), egyébként a macOS bekéri a jelszavát.";
 "Keep running with the lid shut and no external display. Stays on until you switch it off." = "Csukott fedéllel és külső kijelző nélkül is működésben tartja. Addig marad bekapcsolva, amíg ki nem kapcsolja.";
+"Restore System Sleep" = "Rendszeralvás visszaállítása";
+"Keep enabled until I turn it off" = "Maradjon bekapcsolva, amíg ki nem kapcsolom";
 "Handle it automatically" = "Automatikus kezelés";
 "Enable “Only while brewing” so closed-display follows each keep-awake session (your triggers or a manual brew) and turns off when nothing is holding the Mac awake." = "Kapcsolja be a „Csak főzés közben” opciót, hogy a csukott fedél mód minden ébrentartási munkamenetet kövessen (a triggerek vagy egy kézi főzés), és kikapcsoljon, ha semmi sem tartja ébren a Macet.";
 "Turns closed-display mode on when a keep-awake session starts and off when it ends or Keepresso quits." = "Bekapcsolja a csukott fedél módot, amikor egy ébrentartási munkamenet elindul, és kikapcsolja, amikor véget ér, vagy a Keepresso kilép.";
@@ -61,7 +64,7 @@
 "Quick settings" = "Gyorsbeállítások";
 "Tools & shortcuts" = "Eszközök és parancsikonok";
 "A manual session keeps the Mac awake for the selected duration even when no trigger condition is met. Starting one pauses triggers until you resume them." = "A kézi munkamenet a kiválasztott időtartamig ébren tartja a Macet akkor is, ha egyetlen indítófeltétel sem teljesül. Az indítása szünetelteti az indítókat, amíg újra nem aktiválja őket.";
-"Choose which sections appear in the menu-bar dropdown. Turn on any combination." = "Válassza ki, mely szakaszok jelenjenek meg a menüsori lenyíló panelen. Bármilyen kombináció bekapcsolható.";
+"Choose which sections appear in the menu-bar dropdown. Manual session shows fixed and custom timers. Triggers shows AI-agent and other automatic conditions. Quick settings contains lid and battery controls. Tools & shortcuts opens the specialized assistants. Turn on any combination." = "Válassza ki, mely szakaszok jelenjenek meg a menüsori lenyíló panelen. A Kézi munkamenet rögzített és egyéni időzítőket jelenít meg. A Triggerek az AI-ügynök és más automatikus feltételeket jelenítik meg. A Gyorsbeállítások a fedél- és akkumulátorvezérlőket tartalmazza. Az Eszközök és parancsikonok a speciális segédeket nyitja meg. Bármilyen kombináció bekapcsolható.";
 "At least one control section must stay visible." = "Legalább egy vezérlési szakasznak láthatónak kell maradnia.";
 "Gaming" = "Játék";
 "None" = "Nincs";
@@ -210,6 +213,8 @@
 "Times & days" = "Időpontok és napok";
 "Toggle shortcut" = "Kapcsoló gyorsbillentyű";
 "No active triggers. Resume to use automatic rules." = "Nincsenek aktív triggerek. Folytassa őket az automatikus szabályok használatához.";
+"Triggers paused. Controlling manually for now." = "Triggerek szüneteltetve. Egyelőre kézi vezérlés.";
+"Ends at %@" = "Vége: %@";
 "Until a Time…" = "Egy adott időpontig…";
 "VPN connected" = "VPN csatlakoztatva";
 "View on GitHub" = "Megtekintés a GitHubon";

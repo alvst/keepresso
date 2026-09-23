@@ -35,24 +35,22 @@ struct MenuBarContent: View {
     /// (stops Observation-graph growth and TimelineView CPU) and remounts
     /// when the menu opens again.
     @State private var panelVisible = true
-    /// Bumped when the lid-closed row is clicked while the automation owns it.
-    @State private var lidRowShakes = 0
     @State private var showCustomDuration = false
     @State private var showUntilTime = false
     @State private var helpExpanded = false
 
-    static let durationOptions: [(label: String, mode: SessionMode)] = [
-        ("Indefinitely", .indefinite),
-        ("15 minutes", .timed(duration: 15 * 60)),
-        ("1 hour", .timed(duration: 60 * 60)),
+    static var durationOptions: [(label: String, mode: SessionMode)] { [
+        (L("Indefinitely"), .indefinite),
+        (L("15 minutes"), .timed(duration: 15 * 60)),
+        (L("1 hour"), .timed(duration: 60 * 60)),
         (shortDuration(3 * 60 * 60), .timed(duration: 3 * 60 * 60)),
-        ("4 hours", .timed(duration: 4 * 60 * 60)),
-    ]
+        (L("4 hours"), .timed(duration: 4 * 60 * 60)),
+    ] }
 
     /// The menu label for the current mode: a preset's name when it matches,
     /// otherwise the custom duration spelled out ("2 h 30 min").
     static func modeLabel(_ mode: SessionMode) -> String {
-        if let preset = durationOptions.first(where: { $0.mode == mode }) { return L(preset.label) }
+        if let preset = durationOptions.first(where: { $0.mode == mode }) { return preset.label }
         guard let duration = mode.duration else { return L("Indefinitely") }
         return shortDuration(duration)
     }
@@ -117,13 +115,23 @@ struct MenuBarContent: View {
 
             Divider()
 
-            configuredMenuSections
+            if model.menuCustomizationEnabled {
+                configuredMenuSections
+            } else {
+                standardMenuSections
+            }
+
+            // A live system-wide sleep override and its failures are safety
+            // state, not customization. They remain visible even when Quick
+            // settings is hidden or the panel is collapsed.
+            sleepRecoveryControls
 
             statusStack
 
-            Divider()
-
-            appEntries
+            if model.menuCustomizationEnabled || model.menuPanelExpanded {
+                Divider()
+                appEntries
+            }
 
             expandToggleRow
         }
@@ -141,6 +149,7 @@ struct MenuBarContent: View {
         .animation(.snappy(duration: 0.25), value: model.closedDisplayError)
         .animation(.snappy(duration: 0.25), value: model.helperAttention)
         .animation(.snappy(duration: 0.25), value: model.menuPanelExpanded)
+        .animation(.snappy(duration: 0.25), value: model.menuCustomizationEnabled)
         .animation(.snappy(duration: 0.25), value: model.showManualSessionInMenu)
         .animation(.snappy(duration: 0.25), value: model.showTriggerControlsInMenu)
         .animation(.snappy(duration: 0.25), value: model.showQuickSettingsInMenu)
@@ -160,7 +169,12 @@ struct MenuBarContent: View {
         }
     }
 
-    /// Enabled sections in saved order; compact mode shows the first two.
+    private var hasVisibleConfiguredControls: Bool {
+        !model.menuCustomizationEnabled || !displayedMenuSections.isEmpty
+    }
+
+    /// Visible sections in the user's saved order. Show less treats that order
+    /// as priority and keeps the first two enabled sections, whatever they are.
     private var displayedMenuSections: [MenuBarSection] {
         let enabled = Set(model.menuSectionOrder.filter { section in
             switch section {
@@ -189,6 +203,30 @@ struct MenuBarContent: View {
         }
     }
 
+    /// The production layout used before menu sections became configurable.
+    /// It remains the default until the user explicitly opts into arranging
+    /// sections. The accepted manual-duration shortcut is kept alongside live
+    /// trigger controls, while Quick settings still follows Show more/less.
+    @ViewBuilder
+    private var standardMenuSections: some View {
+        if model.triggersEnabled && !model.triggersPaused {
+            activeTriggerControls
+            Divider()
+        } else if model.triggersEnabled {
+            Text("Triggers paused. Controlling manually for now.")
+                .font(type.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+
+        manualSessionControls
+
+        if model.menuPanelExpanded {
+            Divider()
+            quickSettings
+        }
+    }
+
     @ViewBuilder
     private func configuredMenuSection(_ section: MenuBarSection) -> some View {
         switch section {
@@ -211,27 +249,7 @@ struct MenuBarContent: View {
         ))
 
         if model.triggersEnabled && !model.triggersPaused {
-            triggerSummary
-                .transition(.opacity)
-
-            // End live leases before pausing trigger control.
-            if session.liveLeases.isEmpty {
-                Text("Activation is controlled by triggers.\nEdit them in Preferences.")
-                    .font(type.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button("Pause Triggers") { model.pauseTriggers() }
-                    .prominentActionStyle()
-                    .frame(maxWidth: .infinity)
-            } else {
-                Text("Activation is controlled by triggers.\nEnd the automation leases before pausing.")
-                    .font(type.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button("End Automation Leases") { model.endAutomationLeases() }
-                    .prominentActionStyle()
-                    .frame(maxWidth: .infinity)
-            }
+            activeTriggerControls
         } else if model.triggersEnabled {
             Text("No active triggers. Resume to use automatic rules.")
                 .font(type.caption)
@@ -244,12 +262,38 @@ struct MenuBarContent: View {
     }
 
     @ViewBuilder
+    private var activeTriggerControls: some View {
+        triggerSummary
+            .transition(.opacity)
+
+        // Pausing means "let my Mac sleep", so live automation leases come
+        // first: the row offers ending them before trigger control pauses.
+        if session.liveLeases.isEmpty {
+            Text("Activation is controlled by triggers.\nEdit them in Preferences.")
+                .font(type.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("Pause Triggers") { model.pauseTriggers() }
+                .prominentActionStyle()
+                .frame(maxWidth: .infinity)
+        } else {
+            Text("Activation is controlled by triggers.\nEnd the automation leases before pausing.")
+                .font(type.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("End Automation Leases") { model.endAutomationLeases() }
+                .prominentActionStyle()
+                .frame(maxWidth: .infinity)
+        }
+    }
+
+    @ViewBuilder
     private var manualSessionControls: some View {
         if model.triggersEnabled && !model.triggersPaused {
             LabeledContent("Keep awake") {
                 Menu("For") {
                     ForEach(Array(Self.durationOptions.enumerated()), id: \.offset) { _, option in
-                        Button(L(option.label)) { model.startManualOverride(mode: option.mode) }
+                        Button(option.label) { model.startManualOverride(mode: option.mode) }
                     }
                     Divider()
                     Button("Custom Duration\u{2026}") { showCustomDuration = true }
@@ -276,7 +320,7 @@ struct MenuBarContent: View {
             LabeledContent("For") {
                 Menu(Self.modeLabel(model.mode)) {
                     ForEach(Array(Self.durationOptions.enumerated()), id: \.offset) { _, option in
-                        Button(L(option.label)) { model.mode = option.mode }
+                        Button(option.label) { model.mode = option.mode }
                     }
                     Divider()
                     Button("Custom Duration\u{2026}") { showCustomDuration = true }
@@ -296,7 +340,8 @@ struct MenuBarContent: View {
             }
 
             if session.isActive && !model.quickStopDurations.isEmpty {
-                // Use a full-width row when compact buttons may clip.
+                // Compound durations or four shortcuts need their own row so
+                // translated labels never clip in the compact panel.
                 if quickStopButtonsFitInline {
                     LabeledContent("Stop in") { quickStopButtons }
                 } else {
@@ -307,8 +352,10 @@ struct MenuBarContent: View {
                 }
             }
 
-            // Keep trigger resumption available when its section is hidden.
-            if model.triggersEnabled && !model.showTriggerControlsInMenu {
+            // If the user hides the trigger section, never strand a paused
+            // trigger engine with no path back from the menu.
+            if model.triggersEnabled
+                && (!model.menuCustomizationEnabled || !model.showTriggerControlsInMenu) {
                 Button("Resume Triggers") { model.resumeTriggers() }
                     .prominentActionStyle()
                     .frame(maxWidth: .infinity)
@@ -316,47 +363,29 @@ struct MenuBarContent: View {
         }
     }
 
-    /// The user-selectable closed-display and battery controls.
+    /// The user-selectable quick settings: session-scoped closed-display and
+    /// battery controls. The safety-critical recovery state lives separately
+    /// in ``sleepRecoveryControls`` so hiding this section cannot hide it.
     @ViewBuilder
     private var quickSettings: some View {
-        // The same pmset switch wears two names: on a laptop it exists to
-        // survive the lid closing, on a desktop (no lid, no battery) it
-        // reads as a hard "never sleep" override.
+        // The convenient path is session-scoped: it takes the global hold only
+        // while a brew is active and releases it on stop, quit, or crash.
         switchRow(model.machineHasBattery ? "Keep awake with lid closed" : "Disable system sleep",
                   isOn: Binding(
-            get: { model.closedDisplayEnabled },
-            set: { model.setClosedDisplay($0) }
+            get: { model.closedDisplayOnlyWhileBrewing },
+            set: { model.closedDisplayOnlyWhileBrewing = $0 }
         ), info: model.machineHasBattery
-            ? L("Keeps the Mac running with the lid shut and no external display. This flips a system setting that needs administrator rights: silent with the administrator helper installed (Preferences ▸ General), otherwise macOS asks for your password.")
-            : L("Stops the Mac from sleeping at all, even with no session running. This flips a system setting that needs administrator rights: silent with the administrator helper installed (Preferences ▸ General), otherwise macOS asks for your password."),
-                  // While "Only while brewing" is on, the automation owns this
-                  // setting: the switch reports what it did instead of offering
-                  // a manual override the next tick would undo anyway. Clicking
-                  // it shakes the line below, which names what is driving it.
-                  switchLocked: model.closedDisplayOnlyWhileBrewing,
-                  onLockedTap: { lidRowShakes += 1 })
-        .disabled(model.closedDisplayBusy)
-        if model.closedDisplayBusy {
+            ? L("Turns closed-display mode on when a keep-awake session starts and off when it ends or Keepresso quits.")
+            : L("Turns the sleep override on when a keep-awake session starts and off when it ends or Keepresso quits."))
+        .disabled(model.closedDisplayAutoBusy || model.closedDisplayBusy)
+        if model.closedDisplayAutoBusy && !model.helperInstalled {
             AdminAuthNote(purpose: model.machineHasBattery
-                ? L("keep the Mac awake with the lid closed")
-                : L("disable system sleep"))
+                ? L("switch closed-display mode with the session")
+                : L("switch the sleep override with the session"))
         }
-        if model.closedDisplayOnlyWhileBrewing {
-            Text("Follows the session while \u{201C}Only while brewing\u{201D} is on.")
-                .font(type.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .shakes(on: lidRowShakes)
-        }
-        if model.closedDisplayEnabled {
-            Text(model.machineHasBattery
-                ? L("Stays awake on battery too; the display turns off when the lid closes. Turn it off before putting it in a bag.")
-                : L("The Mac won't sleep at all until you turn this off. The display still sleeps as usual."))
-                .font(type.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        if model.machineHasBattery && model.closedDisplayEnabled {
+
+        if model.machineHasBattery
+            && (model.closedDisplayOnlyWhileBrewing || model.closedDisplayEnabled) {
             Picker(L("If the lid shuts"), selection: Binding(
                 get: { model.closedLidDisplayPolicy },
                 set: { model.closedLidDisplayPolicy = $0 }
@@ -377,32 +406,6 @@ struct MenuBarContent: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        if let error = model.closedDisplayError {
-            Text(error)
-                .font(type.caption)
-                .foregroundStyle(.orange)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-
-        switchRow("Only while brewing", isOn: Binding(
-            get: { model.closedDisplayOnlyWhileBrewing },
-            set: { model.closedDisplayOnlyWhileBrewing = $0 }
-        ), info: model.machineHasBattery
-            ? L("Turns closed-display mode on when a keep-awake session starts and off when it ends or Keepresso quits.")
-            : L("Turns the sleep override on when a keep-awake session starts and off when it ends or Keepresso quits."))
-        .disabled(model.closedDisplayAutoBusy)
-        if model.closedDisplayAutoBusy && !model.helperInstalled {
-            AdminAuthNote(purpose: model.machineHasBattery
-                ? L("switch closed-display mode with the session")
-                : L("switch the sleep override with the session"))
-        }
-        if let error = model.closedDisplayAutoError {
-            Text(error)
-                .font(type.caption)
-                .foregroundStyle(.orange)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-
         if model.machineHasBattery {
             switchRow("Pause on low battery", isOn: Binding(
                 get: { model.batteryAutoPauseEnabled },
@@ -417,7 +420,45 @@ struct MenuBarContent: View {
         }
     }
 
-    /// Configurable tool shortcuts.
+    /// Safety-critical recovery for a system-wide sleep override. Never make
+    /// the user hunt through Preferences or Terminal to recover Sleep,
+    /// regardless of their menu customization or collapsed-panel choice.
+    @ViewBuilder
+    private var sleepRecoveryControls: some View {
+        if model.closedDisplayEnabled
+            || model.closedDisplayError != nil
+            || model.closedDisplayAutoError != nil {
+            if hasVisibleConfiguredControls { Divider() }
+
+            if model.closedDisplayEnabled {
+                Text(model.machineHasBattery
+                    ? L("Stays awake on battery too; the display turns off when the lid closes. Turn it off before putting it in a bag.")
+                    : L("The Mac won't sleep at all until you turn this off. The display still sleeps as usual."))
+                    .font(type.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("Restore System Sleep") { model.restoreSystemSleep() }
+                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
+                    .disabled(model.closedDisplayBusy || model.closedDisplayAutoBusy)
+            }
+            if let error = model.closedDisplayError {
+                Text(error)
+                    .font(type.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let error = model.closedDisplayAutoError {
+                Text(error)
+                    .font(type.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// Specialized assistants, positioned with the other configurable
+    /// sections according to the user's saved order.
     @ViewBuilder
     private var toolsControls: some View {
         Button {
@@ -451,12 +492,18 @@ struct MenuBarContent: View {
         }
     }
 
-    /// Preferences and Quit stay visible; Help expands with the panel.
+    /// The standard layout calls this only while expanded, preserving its
+    /// established order. Customized layouts keep Preferences and Quit as
+    /// permanent escape hatches while Help still follows Show more/less.
     @ViewBuilder
     private var appEntries: some View {
         Button("Preferences…") { open(KeepressoApp.preferencesWindowID) }
             .keyboardShortcut(",")
             .buttonStyle(.menuRow)
+
+        if !model.menuCustomizationEnabled {
+            toolsControls
+        }
 
         if model.menuPanelExpanded {
             Button {
@@ -496,7 +543,9 @@ struct MenuBarContent: View {
             .buttonStyle(.menuRow)
     }
 
-    /// Compact mode keeps the first two enabled sections.
+    /// The slim "Show less" / "Show more" row. In the standard layout it folds
+    /// Quick settings and app entries away; customized layouts prioritize the
+    /// first two enabled sections.
     private var expandToggleRow: some View {
         Button {
             model.menuPanelExpanded.toggle()
@@ -724,7 +773,15 @@ struct MenuBarContent: View {
         }
         guard session.isActive else { return L("System can sleep") }
         if let remaining = session.remaining {
-            return L("Stops in %@", MenuBarLabel.format(remaining))
+            let countdown = L("Stops in %@", MenuBarLabel.format(remaining))
+            guard let duration = session.mode.duration,
+                  let startedAt = session.startedAt else {
+                return countdown
+            }
+            let endTime = startedAt.addingTimeInterval(duration)
+                .formatted(date: .omitted, time: .shortened)
+
+            return "\(countdown)\n\(L("Ends at %@", endTime))"
         }
             return L("Awake for %@", MenuBarLabel.format(panel.elapsed))
     }
